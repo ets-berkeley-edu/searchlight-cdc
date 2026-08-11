@@ -33,7 +33,7 @@ def apply_env(fe: dict) -> None:
     ):
         if k in fe:
             os.environ[k] = str(fe[k])
-    os.environ.setdefault("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_direct")
+    os.environ.setdefault("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_data")
 
 
 def main() -> int:

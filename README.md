@@ -3,7 +3,7 @@
 [![Build Status](https://app.travis-ci.com/sandeep-jay/searchlight-cdc.svg?branch=main)](https://app.travis-ci.com/sandeep-jay/searchlight-cdc/branches)
 
 
-**Direct-table CDC Lambda** for advising notes — consumes change events from an existing **SQS FIFO** queue and writes to **PostgreSQL** (`boa_app_rds_direct`).
+**Direct-table Change Data Capture (CDC) Lambda** for advising notes — consumes change events from an existing **SQS FIFO** queue and writes to **PostgreSQL** (`boa_app_rds_data`).
 
 ```
 SQS FIFO (CDC events) → handler.lambda_handler → PostgreSQL
@@ -59,7 +59,7 @@ Terraform stack and deployment guide are planned for a follow-up PR. The handler
 
 - An existing SQS FIFO queue (event source mapping)
 - AWS Secrets Manager secret with DB credentials
-- RDS PostgreSQL with `boa_app_rds_direct` schema migrated
+- RDS PostgreSQL with `boa_app_rds_data` schema migrated
 
 ## Security
 

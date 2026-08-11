@@ -47,7 +47,7 @@ def apply_handler_env(fe: dict) -> None:
         "FTS_NIGHTLY_TABLE",
     ):
         os.environ.pop(key, None)
-    os.environ.setdefault("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_direct")
+    os.environ.setdefault("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_data")
     os.environ.setdefault("HANDLER_VERSION", "direct-v1")
 
 
@@ -55,7 +55,7 @@ CONFIG = HandlerConfig(
     handler_module="handler",
     handler_label="direct",
     default_env_key="CDCHandler",
-    default_schema="boa_app_rds_direct",
+    default_schema="boa_app_rds_data",
     apply_handler_env=apply_handler_env,
     doc=__doc__,
 )

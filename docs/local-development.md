@@ -33,14 +33,14 @@ Copy from `env.json.example`. The local SAM key is **`CDCHandler`**:
     "DB_NAME": "test_db",
     "AWS_REGION": "us-west-2",
     "SQS_QUEUE_NAME": "your-queue.fifo",
-    "RDS_SCHEMA_BOA_APP_RDS_DATA": "boa_app_rds_direct",
+    "RDS_SCHEMA_BOA_APP_RDS_DATA": "boa_app_rds_data",
     "HANDLER_VERSION": "direct-v1"
   },
   "CDCHandlerProduction": {
     "LOCAL_DEV": "false",
     "DB_SECRET_NAME": "your-db-secret-name",
     "DB_NAME": "your_db",
-    "RDS_SCHEMA_BOA_APP_RDS_DATA": "boa_app_rds_direct",
+    "RDS_SCHEMA_BOA_APP_RDS_DATA": "boa_app_rds_data",
     "HANDLER_VERSION": "direct-v1"
   }
 }
@@ -119,7 +119,7 @@ python scripts/sqs_consume.py --env-key CDCHandler --max-messages 10
 
 ### Pre-flight checklist (live queue)
 
-- [ ] Target schema is **`boa_app_rds_direct`**
+- [ ] Target schema is **`boa_app_rds_data`**
 - [ ] Production Lambda event source **disabled** or visibility timeout long enough to avoid double consume
 - [ ] `env.json` points at the intended queue (`SQS_QUEUE_NAME`)
 - [ ] You understand messages will **not** be deleted (non-destructive QA only)
@@ -129,7 +129,7 @@ python scripts/sqs_consume.py --env-key CDCHandler --max-messages 10
 ```sql
 SELECT received_at, event_id, table_name, effective_operation,
        composite_id, apply_status
-FROM boa_app_rds_direct.advising_notes_cdc_log
+FROM boa_app_rds_data.advising_notes_cdc_log
 ORDER BY received_at DESC
 LIMIT 20;
 ```

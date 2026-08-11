@@ -21,7 +21,7 @@ def main() -> int:
     ap.add_argument("--dbname", default=os.environ.get("DB_NAME", "test_db"))
     ap.add_argument(
         "--schema",
-        default=os.environ.get("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_direct"),
+        default=os.environ.get("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_data"),
     )
     args = ap.parse_args()
 

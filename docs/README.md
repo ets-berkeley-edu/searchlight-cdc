@@ -1,6 +1,6 @@
 # Direct production pack — documentation
 
-Self-contained docs for the **direct-table CDC** Lambda in this folder. BOA remains the source of truth; this system maintains a derived search index in PostgreSQL schema `boa_app_rds_direct`.
+Self-contained docs for the **direct-table CDC** Lambda in this folder. BOA remains the source of truth; this system maintains a derived search index in PostgreSQL schema `boa_app_rds_data`.
 
 ## Guides
 
@@ -42,7 +42,7 @@ See [Deployment](deployment.md) for secret format and required variables.
 ```text
 direct-prod/
 ├── lambda/handler.py       # handler.lambda_handler
-├── sql/                    # DDL 001–003 for boa_app_rds_direct
+├── sql/                    # DDL 001–003 for boa_app_rds_data
 ├── terraform/              # Lambda + IAM + SQS event source
 ├── events/examples/        # Synthetic CDC envelopes
 ├── scripts/                # apply_sql, replay, sqs_consume

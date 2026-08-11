@@ -7,6 +7,8 @@ Globals:
     Timeout: 60
     MemorySize: 256
     Runtime: python3.11
+    Architectures:
+      - x86_64
 
 Resources:
   CDCHandler:
@@ -19,5 +21,5 @@ Resources:
       Environment:
         Variables:
           LOCAL_DEV: "true"
-          RDS_SCHEMA_BOA_APP_RDS_DATA: boa_app_rds_direct
+          RDS_SCHEMA_BOA_APP_RDS_DATA: boa_app_rds_data
           HANDLER_VERSION: direct-v1

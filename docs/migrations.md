@@ -1,6 +1,6 @@
 # Migrations
 
-SQL migration guidance for schema `boa_app_rds_direct`.
+SQL migration guidance for schema `boa_app_rds_data`.
 
 ## SQL files
 
@@ -8,7 +8,7 @@ Run in order:
 
 | File | Purpose |
 |------|---------|
-| `sql/001_schema.sql` | Create schema `boa_app_rds_direct` |
+| `sql/001_schema.sql` | Create schema `boa_app_rds_data` |
 | `sql/002_tables.sql` | Create tables and views |
 | `sql/003_indexes.sql` | B-tree and GIN indexes |
 
@@ -77,13 +77,13 @@ If you extend the schema:
 -- Tables exist
 SELECT table_name
 FROM information_schema.tables
-WHERE table_schema = 'boa_app_rds_direct'
+WHERE table_schema = 'boa_app_rds_data'
 ORDER BY table_name;
 
 -- Indexes on FTS
 SELECT indexname
 FROM pg_indexes
-WHERE schemaname = 'boa_app_rds_direct'
+WHERE schemaname = 'boa_app_rds_data'
   AND tablename = 'advising_notes_search_index';
 ```
 

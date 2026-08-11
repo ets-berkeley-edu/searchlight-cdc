@@ -1,6 +1,6 @@
 # Architecture
 
-Production CDC path: **SQS FIFO → Lambda → PostgreSQL** (`boa_app_rds_direct`).
+Production CDC path: **SQS FIFO → Lambda → PostgreSQL** (`boa_app_rds_data`).
 
 The parent Searchlight repo also evaluates a delta/nightly write path; this pack is **direct only**.
 
@@ -10,7 +10,7 @@ The parent Searchlight repo also evaluates a delta/nightly write path; this pack
 BOA (source of truth)
   → SQS FIFO (CDC events)
   → handler.lambda_handler
-  → boa_app_rds_direct (notes, topics, FTS, CDC log)
+  → boa_app_rds_data (notes, topics, FTS, CDC log)
 ```
 
 ```mermaid
@@ -43,10 +43,10 @@ Environment variables (set by Terraform or `env.json`):
 | `DB_SECRET_NAME` / `DB_NAME` | RDS credentials (production) |
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` | Local dev credentials |
 | `LOCAL_DEV` | `"true"` for local Postgres; `"false"` for Secrets Manager |
-| `RDS_SCHEMA_BOA_APP_RDS_DATA` | Target schema (default `boa_app_rds_direct`) |
+| `RDS_SCHEMA_BOA_APP_RDS_DATA` | Target schema (default `boa_app_rds_data`) |
 | `HANDLER_VERSION` | Logged in CDC audit (e.g. `direct-v1`) |
 
-## Schema: `boa_app_rds_direct`
+## Schema: `boa_app_rds_data`
 
 SQL: `sql/001_schema.sql` through `003_indexes.sql`.
 
@@ -64,9 +64,9 @@ Passthrough views (`*_vw`) mirror naming used elsewhere for shadow reads.
 
 | Field | Meaning | Example |
 |-------|---------|---------|
-| `id` (PK) | `{sid}-{note_id}` | `9000000000001-900001` |
+| `id` (PK) | `{source}-{sid}-{note_id}` | `boa-9000000001-900001` |
 | `boa_id` | Source note id | `900001` |
-| `sid` | Student id | `9000000000001` |
+| `sid` | Student id | `9000000001` |
 
 Topics use the parent note's composite `id` plus `topic` as composite PK `(id, topic)`.
 
@@ -180,14 +180,14 @@ Implementation: `lambda/handler.py` → `update_fts_index`.
 
 ```sql
 SELECT n.*
-FROM boa_app_rds_direct.advising_notes n
-JOIN boa_app_rds_direct.advising_notes_search_index s ON n.id = s.id
+FROM boa_app_rds_data.advising_notes n
+JOIN boa_app_rds_data.advising_notes_search_index s ON n.id = s.id
 WHERE s.fts_index @@ plainto_tsquery('english', 'lorem');
 
 -- By student
 SELECT n.*
-FROM boa_app_rds_direct.advising_notes n
-JOIN boa_app_rds_direct.advising_notes_search_index s ON n.id = s.id
+FROM boa_app_rds_data.advising_notes n
+JOIN boa_app_rds_data.advising_notes_search_index s ON n.id = s.id
 WHERE n.sid = '9000000000001'
   AND s.fts_index @@ to_tsquery('english', 'lorem');
 ```
@@ -196,7 +196,7 @@ WHERE n.sid = '9000000000001'
 
 ```sql
 EXPLAIN ANALYZE
-SELECT id FROM boa_app_rds_direct.advising_notes_search_index
+SELECT id FROM boa_app_rds_data.advising_notes_search_index
 WHERE fts_index @@ plainto_tsquery('english', 'lorem');
 ```
 
