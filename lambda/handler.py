@@ -5,7 +5,7 @@ SQS FIFO → lambda_handler → batch.run_sqs_batch → process_message
 Write model (~2–3 SQL touches per event) plus advising_notes_cdc_log audit row.
 Orphan topics → advising_note_topics_pending until note arrives.
 
-Environment: RDS_SCHEMA_BOA_APP_RDS_DATA (default boa_app_rds_direct), HANDLER_VERSION.
+Environment: RDS_SCHEMA_BOA_APP_RDS_DATA (default boa_app_rds_data), HANDLER_VERSION.
 """
 
 from __future__ import annotations
@@ -44,8 +44,8 @@ class DirectTables:
 
 
 def load_tables() -> DirectTables:
-    """Return table names from environment with boa_app_rds_direct defaults."""
-    schema = os.environ.get("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_direct")
+    """Return table names from environment with boa_app_rds_data defaults."""
+    schema = os.environ.get("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_data")
     return DirectTables(
         schema=schema,
         notes=os.environ.get("NOTES_TABLE", f"{schema}.advising_notes"),

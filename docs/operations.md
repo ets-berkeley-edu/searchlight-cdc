@@ -52,7 +52,7 @@ Query recent applies:
 ```sql
 SELECT received_at, event_id, table_name, effective_operation,
        composite_id, apply_status
-FROM boa_app_rds_direct.advising_notes_cdc_log
+FROM boa_app_rds_data.advising_notes_cdc_log
 ORDER BY received_at DESC
 LIMIT 50;
 ```
@@ -91,22 +91,22 @@ Run after incidents or before declaring healthy.
 
 ```sql
 SELECT n.id
-FROM boa_app_rds_direct.advising_notes n
-LEFT JOIN boa_app_rds_direct.advising_notes_search_index s ON n.id = s.id
+FROM boa_app_rds_data.advising_notes n
+LEFT JOIN boa_app_rds_data.advising_notes_search_index s ON n.id = s.id
 WHERE s.id IS NULL;
 ```
 
 **Orphan pending topics (may be normal briefly):**
 
 ```sql
-SELECT count(*) FROM boa_app_rds_direct.advising_note_topics_pending;
+SELECT count(*) FROM boa_app_rds_data.advising_note_topics_pending;
 ```
 
 **Duplicate note ids (should be 0):**
 
 ```sql
 SELECT id, count(*)
-FROM boa_app_rds_direct.advising_notes
+FROM boa_app_rds_data.advising_notes
 GROUP BY id
 HAVING count(*) > 1;
 ```
@@ -130,7 +130,7 @@ When a nightly export reloads base tables:
 
 ```sql
 SELECT event_id, payload, table_name, operation, received_at
-FROM boa_app_rds_direct.advising_notes_cdc_log
+FROM boa_app_rds_data.advising_notes_cdc_log
 WHERE apply_status IN ('applied', 'partial_warning')
   AND received_at > :nightly_cutoff
 ORDER BY received_at;

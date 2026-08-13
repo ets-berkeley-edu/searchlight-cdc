@@ -19,7 +19,7 @@ def setup_env_vars():
     os.environ["DB_USER"] = os.getenv("DB_USER", "test_user")
     os.environ["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "test_password")
     os.environ["RDS_SCHEMA_BOA_APP_RDS_DATA"] = os.getenv(
-        "RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_direct"
+        "RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_data"
     )
     os.environ["HANDLER_VERSION"] = "direct-v1"
     for k in (
