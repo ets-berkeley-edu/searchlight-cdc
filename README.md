@@ -13,7 +13,7 @@ Each message updates notes, topics, full-text search, and an audit log in a sing
 
 ## Features
 
-- Python 3.11 Lambda handler with batch processing and structured logging
+- Python 3.13 Lambda handler with batch processing and structured logging
 - PostgreSQL schema and ordered SQL migrations
 - Local development via SAM, pytest, and helper scripts
 - Non-destructive SQS consumer for QA testing (never deletes queue messages)
@@ -22,7 +22,7 @@ Each message updates notes, topics, full-text search, and an audit log in a sing
 ## Quick start
 
 ```bash
-python3.11 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
