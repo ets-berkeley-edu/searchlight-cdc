@@ -4,7 +4,7 @@ Setup, testing, and local validation for the direct-table CDC handler in this pa
 
 ## Prerequisites
 
-- Python 3.11+
+- Python 3.13+
 - PostgreSQL (local or Docker)
 - AWS SAM CLI (optional, for `sam local invoke`)
 - Terraform >= 1.5 (for deploy validation only)
