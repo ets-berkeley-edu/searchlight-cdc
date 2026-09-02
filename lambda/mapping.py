@@ -8,7 +8,7 @@ Expected envelope shape (record body JSON):
       "row": { ... source columns ... }
     }
 
-Notes use composite primary key id = "{sid}-{boa_id}" in the destination DB.
+Notes use composite primary key id = "boa-{sid}-{boa_id}" in the destination DB.
 Topic events only carry note_id (boa_id); sid is resolved via note lookup.
 """
 
@@ -60,7 +60,7 @@ def map_note_row_to_payload(row: dict[str, Any]) -> dict[str, Any]:
         raise ValueError(
             "Note row missing required 'sid' or 'id' field for composite id"
         )
-    composite_id = f"{sid}-{note_id}"
+    composite_id = f"boa-{sid}-{note_id}"
 
     return {
         "id": composite_id,

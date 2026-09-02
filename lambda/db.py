@@ -14,7 +14,7 @@ from typing import Any
 import boto3
 import psycopg2
 
-from logging_utils import log
+from logging_utils import log, log_exception
 
 secrets_client = boto3.client("secretsmanager")
 
@@ -53,8 +53,16 @@ def get_db_credentials() -> dict[str, Any]:
             "Loading DB credentials from Secrets Manager",
             secret_name=DB_SECRET_NAME,
         )
-        secret_response = secrets_client.get_secret_value(SecretId=DB_SECRET_NAME)
-        _db_credentials = json.loads(secret_response["SecretString"])
+        try:
+            secret_response = secrets_client.get_secret_value(SecretId=DB_SECRET_NAME)
+            _db_credentials = json.loads(secret_response["SecretString"])
+        except Exception as e:
+            log_exception(
+                SERVICE_NAME,
+                "Error getting DB credentials from Secrets Manager",
+                e,
+                secret_name=DB_SECRET_NAME,
+            )
     return _db_credentials
 
 

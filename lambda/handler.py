@@ -154,7 +154,7 @@ def process_note(
                 "Note row missing required 'id' or 'sid' field for composite id"
             )
 
-        composite_id = f"{sid}-{note_id}"
+        composite_id = f"boa-{sid}-{note_id}"
         cur.execute(f"DELETE FROM {t.notes} WHERE id = %s", (composite_id,))
         cur.execute(f"DELETE FROM {t.topics} WHERE id = %s", (composite_id,))
         cur.execute(f"DELETE FROM {t.fts} WHERE id = %s", (composite_id,))
