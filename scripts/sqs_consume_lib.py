@@ -1,12 +1,30 @@
-"""Shared non-destructive SQS consumer for local QA testing.
+#!/usr/bin/python3
 
-Used by sqs_consume_delta.py and sqs_consume_direct.py. Long-polls a queue,
-optionally invokes handler.lambda_handler per message,
-and never calls DeleteMessage (messages reappear after visibility timeout).
-
-Default: non-destructive (messages stay on queue). Supports --dry-run, --save-dir,
-Messages are never deleted from the queue.
 """
+Copyright ©2026. The Regents of the University of California (Regents). All Rights Reserved.
+
+Permission to use, copy, modify, and distribute this software and its documentation
+for educational, research, and not-for-profit purposes, without fee and without a
+signed licensing agreement, is hereby granted, provided that the above copyright
+notice, this paragraph and the following two paragraphs appear in all copies,
+modifications, and distributions.
+
+Contact The Office of Technology Licensing, UC Berkeley, 2150 Shattuck Avenue,
+Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, otl@berkeley.edu,
+http://ipira.berkeley.edu/industry-info for commercial licensing opportunities.
+
+IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
+"AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -17,12 +35,24 @@ import os
 import sys
 import time
 import uuid
-from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import boto3
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+"""Shared non-destructive SQS consumer for local QA testing.
+
+Used by sqs_consume_delta.py and sqs_consume_direct.py. Long-polls a queue,
+optionally invokes handler.lambda_handler per message,
+and never calls DeleteMessage (messages reappear after visibility timeout).
+
+Default: non-destructive (messages stay on queue). Supports --dry-run, --save-dir,
+Messages are never deleted from the queue.
+"""
 
 ROOT = Path(__file__).resolve().parents[1]
 log = logging.getLogger("sqs_consume")
@@ -49,7 +79,8 @@ class HandlerConfig:
 def setup_logging(level: str, log_file: str | None) -> None:
     log.setLevel(getattr(logging, level.upper(), logging.INFO))
     fmt = logging.Formatter(
-        "%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s %(levelname)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     sh = logging.StreamHandler(sys.stdout)
     sh.setFormatter(fmt)
@@ -76,21 +107,22 @@ def load_env_file(path: str, key: str) -> dict:
 def _real(*vals: Any) -> Any:
     for v in vals:
         if v and not str(v).strip().lower().startswith(
-            ("your-", "<", "changeme", "replace")
+            ("your-", "<", "changeme", "replace"),
         ):
             return v
     return None
 
 
 def resolve_queue(sqs: Any, queue: str) -> str:
-    if queue.startswith("http://") or queue.startswith("https://"):
+    if queue.startswith("http://", "https://"):
         return queue
     return sqs.get_queue_url(QueueName=queue)["QueueUrl"]
 
 
 def queue_depth(sqs: Any, queue_url: str) -> dict[str, int]:
     attrs = sqs.get_queue_attributes(
-        QueueUrl=queue_url, AttributeNames=list(QUEUE_ATTRS)
+        QueueUrl=queue_url,
+        AttributeNames=list(QUEUE_ATTRS),
     )
     raw = attrs.get("Attributes", {})
     return {
@@ -102,10 +134,7 @@ def queue_depth(sqs: Any, queue_url: str) -> dict[str, int]:
 
 def format_depth(d: dict[str, int]) -> str:
     total = d["visible"] + d["in_flight"] + d["delayed"]
-    return (
-        f"visible={d['visible']:,} in_flight={d['in_flight']:,} "
-        f"delayed={d['delayed']:,} approx_total={total:,}"
-    )
+    return f"visible={d['visible']:,} in_flight={d['in_flight']:,} delayed={d['delayed']:,} approx_total={total:,}"
 
 
 def to_envelope(msg: dict, queue_arn: str, region: str) -> dict:
@@ -121,8 +150,8 @@ def to_envelope(msg: dict, queue_arn: str, region: str) -> dict:
                 "eventSource": "aws:sqs",
                 "eventSourceARN": queue_arn,
                 "awsRegion": region,
-            }
-        ]
+            },
+        ],
     }
 
 
@@ -159,17 +188,21 @@ def log_progress(
     )
 
 
-def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> int:
+def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> int:  # noqa: C901, PLR0912, PLR0915
     """CLI entry: poll SQS, invoke handler, report summary. Non-destructive by default."""
     ap = argparse.ArgumentParser(
         description=handler_cfg.doc,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument(
-        "--queue", default=None, help="Queue name or URL (else env / env.json)"
+        "--queue",
+        default=None,
+        help="Queue name or URL (else env / env.json)",
     )
     ap.add_argument(
-        "--env-file", default="env.json", help="JSON config (default: env.json)"
+        "--env-file",
+        default="env.json",
+        help="JSON config (default: env.json)",
     )
     ap.add_argument(
         "--env-key",
@@ -179,7 +212,10 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
     ap.add_argument("--region", default=None)
     ap.add_argument("--profile", default=None)
     ap.add_argument(
-        "--max-messages", type=int, default=10, help="Stop after N messages processed"
+        "--max-messages",
+        type=int,
+        default=10,
+        help="Stop after N messages processed",
     )
     ap.add_argument("--max-seconds", type=int, default=300, help="Wall-clock limit")
     ap.add_argument(
@@ -189,16 +225,26 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
         help="VisibilityTimeout on receive (seconds)",
     )
     ap.add_argument(
-        "--wait", type=int, default=20, help="Long-poll WaitTimeSeconds (max 20)"
+        "--wait",
+        type=int,
+        default=20,
+        help="Long-poll WaitTimeSeconds (max 20)",
     )
     ap.add_argument(
-        "--idle-polls", type=int, default=3, help="Stop after N empty polls"
+        "--idle-polls",
+        type=int,
+        default=3,
+        help="Stop after N empty polls",
     )
     ap.add_argument(
-        "--dry-run", action="store_true", help="Receive only; do not invoke handler"
+        "--dry-run",
+        action="store_true",
+        help="Receive only; do not invoke handler",
     )
     ap.add_argument(
-        "--save-dir", default=None, help="Write each envelope as <messageId>.json"
+        "--save-dir",
+        default=None,
+        help="Write each envelope as <messageId>.json",
     )
     ap.add_argument(
         "--progress-every",
@@ -230,7 +276,7 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
 
     if not queue:
         log.error(
-            "No queue configured. Use --queue or set SQS_QUEUE_NAME in env / env.json."
+            "No queue configured. Use --queue or set SQS_QUEUE_NAME in env / env.json.",
         )
         return 2
 
@@ -248,15 +294,17 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
 
     try:
         queue_url = resolve_queue(sqs, queue)
-    except Exception as exc:  # noqa: BLE001
-        log.error("Could not resolve queue %r: %s", queue, exc)
+    except Exception as exc:
+        log.exception("Could not resolve queue %r: %s", queue, exc)
         return 2
 
     attrs = sqs.get_queue_attributes(
-        QueueUrl=queue_url, AttributeNames=["QueueArn", "FifoQueue"]
+        QueueUrl=queue_url,
+        AttributeNames=["QueueArn", "FifoQueue"],
     )
     queue_arn = attrs["Attributes"].get(
-        "QueueArn", f"arn:aws:sqs:{region}:000000000000:{queue}"
+        "QueueArn",
+        f"arn:aws:sqs:{region}:000000000000:{queue}",
     )
     is_fifo = attrs["Attributes"].get("FifoQueue") == "true"
 
@@ -352,7 +400,7 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
             except json.JSONDecodeError as exc:
                 failed += 1
                 results.append((mid, False, f"invalid JSON: {exc}"))
-                log.error("[FAIL] %s invalid JSON: %s", mid, exc)
+                log.exception("[FAIL] %s invalid JSON: %s", mid, exc)
                 processed += 1
                 continue
 
@@ -376,23 +424,20 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
                     if failures:
                         failed += 1
                         results.append(
-                            (mid, False, f"{label} batchItemFailures={failures}")
+                            (mid, False, f"{label} batchItemFailures={failures}"),
                         )
                         log.error("[FAIL] %s  %s  %s", mid, label, failures)
                     else:
                         ok += 1
                         results.append((mid, True, label))
                         log.debug("[OK]   %s  %s", mid, label)
-                except Exception as exc:  # noqa: BLE001
+                except Exception as exc:
                     failed += 1
                     results.append((mid, False, f"{label} error={exc}"))
-                    log.error("[FAIL] %s  %s  %s", mid, label, exc)
+                    log.exception("[FAIL] %s  %s  %s", mid, label, exc)
                 processed += 1
 
-            if (
-                args.progress_every
-                and processed - last_progress_at >= args.progress_every
-            ):
+            if args.progress_every and processed - last_progress_at >= args.progress_every:
                 log_progress(
                     processed,
                     ok,

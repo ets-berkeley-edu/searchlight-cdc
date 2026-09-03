@@ -1,4 +1,27 @@
-"""Pytest fixtures for direct CDC handler."""
+"""
+Copyright ©2026. The Regents of the University of California (Regents). All Rights Reserved.
+
+Permission to use, copy, modify, and distribute this software and its documentation
+for educational, research, and not-for-profit purposes, without fee and without a
+signed licensing agreement, is hereby granted, provided that the above copyright
+notice, this paragraph and the following two paragraphs appear in all copies,
+modifications, and distributions.
+
+Contact The Office of Technology Licensing, UC Berkeley, 2150 Shattuck Avenue,
+Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, otl@berkeley.edu,
+http://ipira.berkeley.edu/industry-info for commercial licensing opportunities.
+
+IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
+"AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.
+"""
 
 import json
 import os
@@ -7,7 +30,7 @@ from unittest.mock import Mock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lambda"))
 
-import pytest  # noqa: E402
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -19,7 +42,8 @@ def setup_env_vars():
     os.environ["DB_USER"] = os.getenv("DB_USER", "test_user")
     os.environ["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "test_password")
     os.environ["RDS_SCHEMA_BOA_APP_RDS_DATA"] = os.getenv(
-        "RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_data"
+        "RDS_SCHEMA_BOA_APP_RDS_DATA",
+        "boa_app_rds_data",
     )
     os.environ["HANDLER_VERSION"] = "direct-v1"
     for k in (
@@ -31,7 +55,6 @@ def setup_env_vars():
         "FTS_NIGHTLY_TABLE",
     ):
         os.environ.pop(k, None)
-    yield
 
 
 @pytest.fixture
@@ -45,11 +68,11 @@ def mock_context():
 def mock_secrets_manager():
     creds = {
         "host": os.getenv("DB_HOST", "localhost"),
-        "port": int(os.getenv("DB_PORT", 5432)),
+        "port": int(os.getenv("DB_PORT", "5432")),
         "username": os.getenv("DB_USER", "test_user"),
         "password": os.getenv("DB_PASSWORD", "test_password"),
     }
-    with patch("db.secrets_client") as mock_secrets:
+    with patch("db.get_secrets_client") as mock_secrets:
         mock_secrets.get_secret_value.return_value = {"SecretString": json.dumps(creds)}
         yield mock_secrets
 
@@ -74,10 +97,10 @@ def note_upsert_event():
                             "created_at": "2024-01-01T00:00:00Z",
                             "updated_at": "2024-01-01T00:00:00Z",
                         },
-                    }
+                    },
                 ),
-            }
-        ]
+            },
+        ],
     }
 
 
@@ -96,8 +119,8 @@ def note_delete_event():
                             "sid": "SID001",
                             "deleted_at": "2024-01-02T00:00:00Z",
                         },
-                    }
+                    },
                 ),
-            }
-        ]
+            },
+        ],
     }

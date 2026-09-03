@@ -1,3 +1,32 @@
+"""
+Copyright ©2026. The Regents of the University of California (Regents). All Rights Reserved.
+
+Permission to use, copy, modify, and distribute this software and its documentation
+for educational, research, and not-for-profit purposes, without fee and without a
+signed licensing agreement, is hereby granted, provided that the above copyright
+notice, this paragraph and the following two paragraphs appear in all copies,
+modifications, and distributions.
+
+Contact The Office of Technology Licensing, UC Berkeley, 2150 Shattuck Avenue,
+Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, otl@berkeley.edu,
+http://ipira.berkeley.edu/industry-info for commercial licensing opportunities.
+
+IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
+"AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
 """Map CDC SQS event rows to PostgreSQL payloads.
 
 Expected envelope shape (record body JSON):
@@ -11,10 +40,6 @@ Expected envelope shape (record body JSON):
 Notes use composite primary key id = "boa-{sid}-{boa_id}" in the destination DB.
 Topic events only carry note_id (boa_id); sid is resolved via note lookup.
 """
-
-from __future__ import annotations
-
-from typing import Any
 
 
 def parse_author_name(author_name: str | None) -> tuple[str | None, str | None]:
@@ -36,7 +61,7 @@ def parse_author_name(author_name: str | None) -> tuple[str | None, str | None]:
 
 
 def is_delete_operation(operation: str, row: dict[str, Any]) -> bool:
-    """True when operation is delete or row carries deleted_at (soft delete)."""
+    """Return True when operation is delete or row carries deleted_at (soft delete)."""
     deleted_at = row.get("deleted_at")
     return operation.lower() == "delete" or (deleted_at is not None)
 
@@ -58,7 +83,7 @@ def map_note_row_to_payload(row: dict[str, Any]) -> dict[str, Any]:
     sid = row.get("sid")
     if not sid or not note_id:
         raise ValueError(
-            "Note row missing required 'sid' or 'id' field for composite id"
+            "Note row missing required 'sid' or 'id' field for composite id",
         )
     composite_id = f"boa-{sid}-{note_id}"
 
