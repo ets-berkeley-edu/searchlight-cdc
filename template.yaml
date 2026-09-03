@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Advising Notes Search — direct-table CDC handler (local SAM)
+Description: Advising Notes Search \u2014 direct-table CDC handler (local SAM)
 
 Globals:
   Function:
@@ -10,7 +10,49 @@ Globals:
     Architectures:
       - x86_64
 
+Parameters:
+  LambdaRoleArn:
+    Description: The ARN of the IAM execution role.
+    Type: String
+  Boto3LayerArn:
+    Default: ""
+    Description: The ARN of the lambda layer providing boto3.
+    Type: String
+  Psycopg2LayerArn:
+    Default: ""
+    Description: The ARN of the lambda layer providing psycopg2.
+    Type: String
+
+Conditions:
+  BuildBoto3Layer: !Equals [!Ref Boto3LayerArn, ""]
+  BuildPsycopg2Layer: !Equals [!Ref Psycopg2LayerArn, ""]
+
 Resources:
+
+  Boto3Layer:
+    Type: AWS::Serverless::LayerVersion
+    Condition: BuildBoto3Layer
+    Properties:
+      LayerName: boto3-python313
+      Description: Lambda layer providing boto3 and its dependencies, installed and packaged in a Python 3.13 container
+      ContentUri: .
+      CompatibleRuntimes:
+        - python3.13
+    Metadata:
+      BuildMethod: makefile
+
+  Psycopg2Layer:
+    Type: AWS::Serverless::LayerVersion
+    Condition: BuildPsycopg2Layer
+    Properties:
+      LayerName: psycopg2-python313
+      Description: Lambda layer providing psycopg2 installed and packaged from binary in a Python 3.13 container
+      ContentUri: .
+      CompatibleRuntimes:
+        - python3.13
+    Metadata:
+      BuildMethod: makefile
+
   CDCHandler:
     Type: AWS::Serverless::Function
     Properties:
@@ -18,8 +60,13 @@ Resources:
       CodeUri: lambda/
       Handler: handler.lambda_handler
       Description: Direct-table production CDC handler
+      Role: !Ref LambdaRoleArn
       Environment:
         Variables:
           LOCAL_DEV: "true"
           RDS_SCHEMA_BOA_APP_RDS_DATA: boa_app_rds_data
           HANDLER_VERSION: direct-v1
+      Layers:
+        - !If [BuildBoto3Layer, !Ref Boto3Layer, !Ref Boto3LayerArn]
+        - !If [BuildPsycopg2Layer, !Ref Psycopg2Layer, !Ref Psycopg2LayerArn]
+

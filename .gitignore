@@ -36,6 +36,7 @@ coverage.xml
 
 # Runtime / local data
 data/
+layers/
 
 # OS and editors
 .DS_Store
