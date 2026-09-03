@@ -1,11 +1,26 @@
-"""Direct-table CDC Lambda (handler.lambda_handler).
+"""
+Copyright ©2026. The Regents of the University of California (Regents). All Rights Reserved.
 
-SQS FIFO → lambda_handler → batch.run_sqs_batch → process_message
+Permission to use, copy, modify, and distribute this software and its documentation
+for educational, research, and not-for-profit purposes, without fee and without a
+signed licensing agreement, is hereby granted, provided that the above copyright
+notice, this paragraph and the following two paragraphs appear in all copies,
+modifications, and distributions.
 
-Write model (~2–3 SQL touches per event) plus advising_notes_cdc_log audit row.
-Orphan topics → advising_note_topics_pending until note arrives.
+Contact The Office of Technology Licensing, UC Berkeley, 2150 Shattuck Avenue,
+Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, otl@berkeley.edu,
+http://ipira.berkeley.edu/industry-info for commercial licensing opportunities.
 
-Environment: RDS_SCHEMA_BOA_APP_RDS_DATA (default boa_app_rds_data), HANDLER_VERSION.
+IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
+"AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from __future__ import annotations
@@ -18,10 +33,19 @@ from typing import Any
 
 import psycopg2
 import psycopg2.extras
-
 from batch import run_sqs_batch
 from logging_utils import log
 from mapping import effective_operation, is_delete_operation, map_note_row_to_payload
+
+"""Direct-table CDC Lambda (handler.lambda_handler).
+
+SQS FIFO → lambda_handler → batch.run_sqs_batch → process_message
+
+Write model (~2-3 SQL touches per event) plus advising_notes_cdc_log audit row.
+Orphan topics → advising_note_topics_pending until note arrives.
+
+Environment: RDS_SCHEMA_BOA_APP_RDS_DATA (default boa_app_rds_data), HANDLER_VERSION.
+"""
 
 SERVICE_NAME = "advising-notes-search-cdc-direct"
 
@@ -52,7 +76,8 @@ def load_tables() -> DirectTables:
         topics=os.environ.get("TOPICS_TABLE", f"{schema}.advising_note_topics"),
         fts=os.environ.get("FTS_TABLE", f"{schema}.advising_notes_search_index"),
         pending_topics=os.environ.get(
-            "PENDING_TOPICS_TABLE", f"{schema}.advising_note_topics_pending"
+            "PENDING_TOPICS_TABLE",
+            f"{schema}.advising_note_topics_pending",
         ),
         cdc_log=os.environ.get("CDC_LOG_TABLE", f"{schema}.advising_notes_cdc_log"),
         handler_version=os.environ.get("HANDLER_VERSION", "direct-v1"),
@@ -65,7 +90,9 @@ def load_tables() -> DirectTables:
 
 
 def process_message(
-    conn: psycopg2.extensions.connection, msg: dict[str, Any], message_id: str
+    conn: psycopg2.extensions.connection,
+    msg: dict[str, Any],
+    message_id: str,
 ) -> None:
     """Route one CDC envelope; audit log written in the same transaction."""
     table = msg.get("table", "")
@@ -81,7 +108,7 @@ def process_message(
         operation=operation,
     )
 
-    with conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:  # noqa: SIM117
+    with conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         if table == "notes":
             process_note(cur, operation, row, message_id)
         elif table == "note_topics":
@@ -90,7 +117,7 @@ def process_message(
             raise ValueError(f"Unsupported table: {table}")
 
 
-def insert_cdc_log(
+def insert_cdc_log(  # noqa: PLR0913
     cur: psycopg2.extensions.cursor,
     t: Any,
     *,
@@ -151,7 +178,7 @@ def process_note(
         sid = row.get("sid")
         if not note_id or not sid:
             raise ValueError(
-                "Note row missing required 'id' or 'sid' field for composite id"
+                "Note row missing required 'id' or 'sid' field for composite id",
             )
 
         composite_id = f"boa-{sid}-{note_id}"
@@ -214,7 +241,12 @@ def process_note(
         """
         cur.execute(sql, payload)
         reconcile_pending_topics(
-            cur, t, note_id, payload.get("sid"), payload.get("boa_id"), event_id
+            cur,
+            t,
+            note_id,
+            payload.get("sid"),
+            payload.get("boa_id"),
+            event_id,
         )
         fts_status = update_fts_index(cur, t, note_id, event_id)
         insert_cdc_log(
@@ -488,8 +520,8 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
 
 
 __all__ = [
-    "lambda_handler",
-    "process_message",
-    "load_tables",
     "DirectTables",
+    "lambda_handler",
+    "load_tables",
+    "process_message",
 ]

@@ -1,7 +1,26 @@
-"""Database connection helpers for CDC Lambda handlers.
+"""
+Copyright ©2026. The Regents of the University of California (Regents). All Rights Reserved.
 
-Production: credentials from AWS Secrets Manager (DB_SECRET_NAME).
-Local/SAM:  LOCAL_DEV=true reads DB_HOST, DB_USER, etc. from environment.
+Permission to use, copy, modify, and distribute this software and its documentation
+for educational, research, and not-for-profit purposes, without fee and without a
+signed licensing agreement, is hereby granted, provided that the above copyright
+notice, this paragraph and the following two paragraphs appear in all copies,
+modifications, and distributions.
+
+Contact The Office of Technology Licensing, UC Berkeley, 2150 Shattuck Avenue,
+Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, otl@berkeley.edu,
+http://ipira.berkeley.edu/industry-info for commercial licensing opportunities.
+
+IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
+"AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.
 """
 
 from __future__ import annotations
@@ -13,8 +32,13 @@ from typing import Any
 
 import boto3
 import psycopg2
-
 from logging_utils import log, log_exception
+
+"""Database connection helpers for CDC Lambda handlers.
+
+Production: credentials from AWS Secrets Manager (DB_SECRET_NAME).
+Local/SAM:  LOCAL_DEV=true reads DB_HOST, DB_USER, etc. from environment.
+"""
 
 secrets_client = boto3.client("secretsmanager")
 
@@ -34,7 +58,7 @@ def _local_credentials() -> dict[str, Any]:
     except ImportError:
         return {
             "host": os.environ.get("DB_HOST", "localhost"),
-            "port": int(os.environ.get("DB_PORT", 5432)),
+            "port": int(os.environ.get("DB_PORT", "5432")),
             "username": os.environ.get("DB_USER", "test_user"),
             "password": os.environ.get("DB_PASSWORD", "test_password"),
         }

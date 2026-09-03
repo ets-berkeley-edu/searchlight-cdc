@@ -1,3 +1,41 @@
+"""
+Copyright ©2026. The Regents of the University of California (Regents). All Rights Reserved.
+
+Permission to use, copy, modify, and distribute this software and its documentation
+for educational, research, and not-for-profit purposes, without fee and without a
+signed licensing agreement, is hereby granted, provided that the above copyright
+notice, this paragraph and the following two paragraphs appear in all copies,
+modifications, and distributions.
+
+Contact The Office of Technology Licensing, UC Berkeley, 2150 Shattuck Avenue,
+Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, otl@berkeley.edu,
+http://ipira.berkeley.edu/industry-info for commercial licensing opportunities.
+
+IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL,
+INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF
+THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED
+"AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
+ENHANCEMENTS, OR MODIFICATIONS.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import psycopg2
+from db import get_db_connection
+from logging_utils import log, log_exception
+
 """Shared SQS batch processing loop for CDC handlers.
 
 Both delta and direct delegate here. Responsibilities:
@@ -8,24 +46,13 @@ Both delta and direct delegate here. Responsibilities:
   - Roll back the current message on error; continue processing siblings.
 """
 
-from __future__ import annotations
-
-import json
-import logging
-from collections.abc import Callable
-from typing import Any
-
-import psycopg2
-
-from db import get_db_connection
-from logging_utils import log, log_exception
-
 
 def run_sqs_batch(
     event: dict[str, Any],
     context: Any,
     process_message: Callable[
-        [psycopg2.extensions.connection, dict[str, Any], str], None
+        [psycopg2.extensions.connection, dict[str, Any], str],
+        None,
     ],
     service_name: str,
 ) -> dict[str, Any]:
@@ -89,9 +116,7 @@ def run_sqs_batch(
             e,
             request_id=request_id,
         )
-        batch_item_failures = [
-            {"itemIdentifier": r.get("messageId", "unknown")} for r in records
-        ]
+        batch_item_failures = [{"itemIdentifier": r.get("messageId", "unknown")} for r in records]
     finally:
         if conn and not conn.closed:
             conn.close()
