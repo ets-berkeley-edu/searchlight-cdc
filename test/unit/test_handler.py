@@ -37,7 +37,7 @@ class TestHandler:
         mock_secrets_manager,  # noqa: ARG002
         note_upsert_event,
     ):
-        with patch("db.psycopg2.connect") as mock_connect:
+        with patch('db.psycopg2.connect') as mock_connect:
             mock_conn = MagicMock()
             mock_cur = MagicMock()
             mock_conn.cursor.return_value.__enter__.return_value = mock_cur
@@ -47,7 +47,7 @@ class TestHandler:
 
             result = lambda_handler(note_upsert_event, mock_context)
 
-            assert result["batchItemFailures"] == []
+            assert result['batchItemFailures'] == []
             assert mock_cur.execute.call_count > 0
 
     def test_note_delete_success(
@@ -56,7 +56,7 @@ class TestHandler:
         mock_secrets_manager,  # noqa: ARG002
         note_delete_event,
     ):
-        with patch("db.psycopg2.connect") as mock_connect:
+        with patch('db.psycopg2.connect') as mock_connect:
             mock_conn = MagicMock()
             mock_cur = MagicMock()
             mock_conn.cursor.return_value.__enter__.return_value = mock_cur
@@ -66,5 +66,5 @@ class TestHandler:
 
             result = lambda_handler(note_delete_event, mock_context)
 
-            assert result["batchItemFailures"] == []
+            assert result['batchItemFailures'] == []
             assert mock_cur.execute.call_count >= 3

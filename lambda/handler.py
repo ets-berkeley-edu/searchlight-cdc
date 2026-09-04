@@ -47,7 +47,7 @@ Orphan topics → advising_note_topics_pending until note arrives.
 Environment: RDS_SCHEMA_BOA_APP_RDS_DATA (default boa_app_rds_data), HANDLER_VERSION.
 """
 
-SERVICE_NAME = "advising-notes-search-cdc-direct"
+SERVICE_NAME = 'advising-notes-search-cdc-direct'
 
 # ---------------------------------------------------------------------------
 # Table configuration (env-driven; re-read on each load_tables() call)
@@ -69,18 +69,18 @@ class DirectTables:
 
 def load_tables() -> DirectTables:
     """Return table names from environment with boa_app_rds_data defaults."""
-    schema = os.environ.get("RDS_SCHEMA_BOA_APP_RDS_DATA", "boa_app_rds_data")
+    schema = os.environ.get('RDS_SCHEMA_BOA_APP_RDS_DATA', 'boa_app_rds_data')
     return DirectTables(
         schema=schema,
-        notes=os.environ.get("NOTES_TABLE", f"{schema}.advising_notes"),
-        topics=os.environ.get("TOPICS_TABLE", f"{schema}.advising_note_topics"),
-        fts=os.environ.get("FTS_TABLE", f"{schema}.advising_notes_search_index"),
+        notes=os.environ.get('NOTES_TABLE', f'{schema}.advising_notes'),
+        topics=os.environ.get('TOPICS_TABLE', f'{schema}.advising_note_topics'),
+        fts=os.environ.get('FTS_TABLE', f'{schema}.advising_notes_search_index'),
         pending_topics=os.environ.get(
-            "PENDING_TOPICS_TABLE",
-            f"{schema}.advising_note_topics_pending",
+            'PENDING_TOPICS_TABLE',
+            f'{schema}.advising_note_topics_pending',
         ),
-        cdc_log=os.environ.get("CDC_LOG_TABLE", f"{schema}.advising_notes_cdc_log"),
-        handler_version=os.environ.get("HANDLER_VERSION", "direct-v1"),
+        cdc_log=os.environ.get('CDC_LOG_TABLE', f'{schema}.advising_notes_cdc_log'),
+        handler_version=os.environ.get('HANDLER_VERSION', 'direct-v1'),
     )
 
 
@@ -95,26 +95,26 @@ def process_message(
     message_id: str,
 ) -> None:
     """Route one CDC envelope; audit log written in the same transaction."""
-    table = msg.get("table", "")
-    operation = msg.get("operation", "").lower()
-    row = msg.get("row", {})
+    table = msg.get('table', '')
+    operation = msg.get('operation', '').lower()
+    row = msg.get('row', {})
 
     log(
         SERVICE_NAME,
         logging.INFO,
-        "Processing message",
+        'Processing message',
         event_id=message_id,
         table=table,
         operation=operation,
     )
 
     with conn, conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        if table == "notes":
+        if table == 'notes':
             process_note(cur, operation, row, message_id)
-        elif table == "note_topics":
+        elif table == 'note_topics':
             process_note_topic(cur, operation, row, message_id)
         else:
-            raise ValueError(f"Unsupported table: {table}")
+            raise ValueError(f'Unsupported table: {table}')
 
 
 def insert_cdc_log(  # noqa: PLR0913
@@ -174,43 +174,43 @@ def process_note(
     t = load_tables()
 
     if is_delete_operation(operation, row):
-        note_id = str(row.get("id")) if row.get("id") is not None else None
-        sid = row.get("sid")
+        note_id = str(row.get('id')) if row.get('id') is not None else None
+        sid = row.get('sid')
         if not note_id or not sid:
             raise ValueError(
                 "Note row missing required 'id' or 'sid' field for composite id",
             )
 
-        composite_id = f"boa-{sid}-{note_id}"
-        cur.execute(f"DELETE FROM {t.notes} WHERE id = %s", (composite_id,))
-        cur.execute(f"DELETE FROM {t.topics} WHERE id = %s", (composite_id,))
-        cur.execute(f"DELETE FROM {t.fts} WHERE id = %s", (composite_id,))
-        cur.execute(f"DELETE FROM {t.pending_topics} WHERE boa_id = %s", (note_id,))
+        composite_id = f'boa-{sid}-{note_id}'
+        cur.execute(f'DELETE FROM {t.notes} WHERE id = %s', (composite_id,))
+        cur.execute(f'DELETE FROM {t.topics} WHERE id = %s', (composite_id,))
+        cur.execute(f'DELETE FROM {t.fts} WHERE id = %s', (composite_id,))
+        cur.execute(f'DELETE FROM {t.pending_topics} WHERE boa_id = %s', (note_id,))
         insert_cdc_log(
             cur,
             t,
             event_id=event_id,
-            table_name="notes",
+            table_name='notes',
             operation=operation,
             row=row,
-            prepared_record={"composite_id": composite_id},
+            prepared_record={'composite_id': composite_id},
             composite_id=composite_id,
             boa_id=note_id,
-            apply_status="applied",
+            apply_status='applied',
         )
         log(
             SERVICE_NAME,
             logging.INFO,
-            "Note deleted",
+            'Note deleted',
             event_id=event_id,
             composite_id=composite_id,
             boa_id=note_id,
         )
         return
 
-    if operation in ("create", "update", "upsert"):
+    if operation in ('create', 'update', 'upsert'):
         payload = map_note_row_to_payload(row)
-        note_id = payload.get("id")
+        note_id = payload.get('id')
         if not note_id:
             raise ValueError("Note row missing required 'id' field")
 
@@ -244,8 +244,8 @@ def process_note(
             cur,
             t,
             note_id,
-            payload.get("sid"),
-            payload.get("boa_id"),
+            payload.get('sid'),
+            payload.get('boa_id'),
             event_id,
         )
         fts_status = update_fts_index(cur, t, note_id, event_id)
@@ -253,25 +253,25 @@ def process_note(
             cur,
             t,
             event_id=event_id,
-            table_name="notes",
+            table_name='notes',
             operation=operation,
             row=row,
             prepared_record=payload,
             composite_id=note_id,
-            boa_id=payload.get("boa_id"),
-            apply_status="partial_warning" if fts_status == "warning" else "applied",
+            boa_id=payload.get('boa_id'),
+            apply_status='partial_warning' if fts_status == 'warning' else 'applied',
         )
         log(
             SERVICE_NAME,
             logging.INFO,
-            "Note upserted",
+            'Note upserted',
             event_id=event_id,
             composite_id=note_id,
-            boa_id=payload.get("boa_id"),
+            boa_id=payload.get('boa_id'),
         )
         return
 
-    raise ValueError(f"Unsupported operation: {operation}")
+    raise ValueError(f'Unsupported operation: {operation}')
 
 
 def process_note_topic(
@@ -282,39 +282,39 @@ def process_note_topic(
 ) -> None:
     """Upsert/delete topic; park in pending if parent note not yet seen."""
     t = load_tables()
-    boa_id = str(row.get("note_id")) if row.get("note_id") is not None else None
-    topic = row.get("topic")
+    boa_id = str(row.get('note_id')) if row.get('note_id') is not None else None
+    topic = row.get('topic')
 
     if not boa_id:
         raise ValueError("Topic row missing required 'note_id' field")
     if not topic:
         raise ValueError("Topic row missing required 'topic' field")
 
-    cur.execute(f"SELECT id, sid FROM {t.notes} WHERE boa_id = %s", (boa_id,))
+    cur.execute(f'SELECT id, sid FROM {t.notes} WHERE boa_id = %s', (boa_id,))
     note_row = cur.fetchone()
 
     if not note_row:
         if is_delete_operation(operation, row):
             cur.execute(
-                f"DELETE FROM {t.pending_topics} WHERE boa_id = %s AND topic = %s",
+                f'DELETE FROM {t.pending_topics} WHERE boa_id = %s AND topic = %s',
                 (boa_id, topic),
             )
             insert_cdc_log(
                 cur,
                 t,
                 event_id=event_id,
-                table_name="note_topics",
+                table_name='note_topics',
                 operation=operation,
                 row=row,
                 prepared_record=None,
                 composite_id=None,
                 boa_id=boa_id,
-                apply_status="applied",
+                apply_status='applied',
             )
             log(
                 SERVICE_NAME,
                 logging.INFO,
-                "Pending topic removed (note not present)",
+                'Pending topic removed (note not present)',
                 event_id=event_id,
                 boa_id=boa_id,
                 topic=topic,
@@ -326,37 +326,37 @@ def process_note_topic(
                 VALUES (%s, %s, %s)
                 ON CONFLICT (boa_id, topic) DO UPDATE SET author_uid = EXCLUDED.author_uid
                 """,
-                (boa_id, topic, row.get("author_uid")),
+                (boa_id, topic, row.get('author_uid')),
             )
             insert_cdc_log(
                 cur,
                 t,
                 event_id=event_id,
-                table_name="note_topics",
+                table_name='note_topics',
                 operation=operation,
                 row=row,
-                prepared_record={"boa_id": boa_id, "topic": topic},
+                prepared_record={'boa_id': boa_id, 'topic': topic},
                 composite_id=None,
                 boa_id=boa_id,
-                apply_status="parked",
+                apply_status='parked',
             )
             log(
                 SERVICE_NAME,
                 logging.INFO,
-                "Topic parked pending note arrival",
+                'Topic parked pending note arrival',
                 event_id=event_id,
                 boa_id=boa_id,
                 topic=topic,
             )
         return
 
-    composite_id = note_row.get("id") if hasattr(note_row, "get") else note_row[0]
-    sid = note_row.get("sid") if hasattr(note_row, "get") else note_row[1]
-    prepared = {"id": composite_id, "sid": sid, "boa_id": boa_id, "topic": topic}
+    composite_id = note_row.get('id') if hasattr(note_row, 'get') else note_row[0]
+    sid = note_row.get('sid') if hasattr(note_row, 'get') else note_row[1]
+    prepared = {'id': composite_id, 'sid': sid, 'boa_id': boa_id, 'topic': topic}
 
     if is_delete_operation(operation, row):
         cur.execute(
-            f"DELETE FROM {t.topics} WHERE id = %s AND topic = %s",
+            f'DELETE FROM {t.topics} WHERE id = %s AND topic = %s',
             (composite_id, topic),
         )
         fts_status = update_fts_index(cur, t, composite_id, event_id)
@@ -364,18 +364,18 @@ def process_note_topic(
             cur,
             t,
             event_id=event_id,
-            table_name="note_topics",
+            table_name='note_topics',
             operation=operation,
             row=row,
             prepared_record=prepared,
             composite_id=composite_id,
             boa_id=boa_id,
-            apply_status="partial_warning" if fts_status == "warning" else "applied",
+            apply_status='partial_warning' if fts_status == 'warning' else 'applied',
         )
         log(
             SERVICE_NAME,
             logging.INFO,
-            "Topic deleted",
+            'Topic deleted',
             event_id=event_id,
             composite_id=composite_id,
             boa_id=boa_id,
@@ -383,7 +383,7 @@ def process_note_topic(
         )
         return
 
-    if operation in ("create", "update", "upsert"):
+    if operation in ('create', 'update', 'upsert'):
         cur.execute(
             f"""
             INSERT INTO {t.topics} (id, sid, boa_id, topic)
@@ -398,18 +398,18 @@ def process_note_topic(
             cur,
             t,
             event_id=event_id,
-            table_name="note_topics",
+            table_name='note_topics',
             operation=operation,
             row=row,
             prepared_record=prepared,
             composite_id=composite_id,
             boa_id=boa_id,
-            apply_status="partial_warning" if fts_status == "warning" else "applied",
+            apply_status='partial_warning' if fts_status == 'warning' else 'applied',
         )
         log(
             SERVICE_NAME,
             logging.INFO,
-            "Topic upserted",
+            'Topic upserted',
             event_id=event_id,
             composite_id=composite_id,
             boa_id=boa_id,
@@ -417,7 +417,7 @@ def process_note_topic(
         )
         return
 
-    raise ValueError(f"Unsupported operation: {operation}")
+    raise ValueError(f'Unsupported operation: {operation}')
 
 
 def reconcile_pending_topics(
@@ -438,12 +438,12 @@ def reconcile_pending_topics(
         (composite_id, sid, boa_id),
     )
     moved = cur.rowcount if isinstance(cur.rowcount, int) else 0
-    cur.execute(f"DELETE FROM {t.pending_topics} WHERE boa_id = %s", (boa_id,))
+    cur.execute(f'DELETE FROM {t.pending_topics} WHERE boa_id = %s', (boa_id,))
     if moved:
         log(
             SERVICE_NAME,
             logging.INFO,
-            "Reconciled pending topics",
+            'Reconciled pending topics',
             event_id=event_id,
             composite_id=composite_id,
             boa_id=boa_id,
@@ -494,19 +494,19 @@ def update_fts_index(
         log(
             SERVICE_NAME,
             logging.WARNING,
-            "FTS index update resulted in no rows affected",
+            'FTS index update resulted in no rows affected',
             event_id=event_id,
             composite_id=composite_id,
         )
-        return "warning"
+        return 'warning'
     log(
         SERVICE_NAME,
         logging.INFO,
-        "FTS index updated",
+        'FTS index updated',
         event_id=event_id,
         composite_id=composite_id,
     )
-    return "applied"
+    return 'applied'
 
 
 # ---------------------------------------------------------------------------
@@ -520,8 +520,8 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
 
 
 __all__ = [
-    "DirectTables",
-    "lambda_handler",
-    "load_tables",
-    "process_message",
+    'DirectTables',
+    'lambda_handler',
+    'load_tables',
+    'process_message',
 ]
