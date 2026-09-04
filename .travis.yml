@@ -2,19 +2,17 @@ language: python
 python:
   - "3.13"
 
-dist: jammy
-
-cache:
-  pip: true
+dist: noble
 
 install:
   - pip install --upgrade pip
-  - pip install -r requirements.txt
+  - pip install tox
 
 script:
-  - make check
-  - make test-unit
+  - pip cache purge
+  - pip install --force-reinstall -r requirements.txt
+  - tox --parallel || travis_terminate 1
 
 branches:
   only:
-    - main
+    - dev

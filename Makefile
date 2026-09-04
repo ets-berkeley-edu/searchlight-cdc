@@ -1,4 +1,4 @@
-include .env.dev
+-include .env.dev
 export
 
 .PHONY: help build-Psycopg2Layer build-Boto3Layer build test-unit apply-sql sam-test sam-test-all consume-sqs consume-sqs-dry-run replay check deploy-dev test-remote publish
