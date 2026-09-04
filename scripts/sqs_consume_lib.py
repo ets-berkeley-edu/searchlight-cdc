@@ -55,12 +55,12 @@ Messages are never deleted from the queue.
 """
 
 ROOT = Path(__file__).resolve().parents[1]
-log = logging.getLogger("sqs_consume")
+log = logging.getLogger('sqs_consume')
 
 QUEUE_ATTRS = (
-    "ApproximateNumberOfMessages",
-    "ApproximateNumberOfMessagesNotVisible",
-    "ApproximateNumberOfMessagesDelayed",
+    'ApproximateNumberOfMessages',
+    'ApproximateNumberOfMessagesNotVisible',
+    'ApproximateNumberOfMessagesDelayed',
 )
 
 
@@ -79,8 +79,8 @@ class HandlerConfig:
 def setup_logging(level: str, log_file: str | None) -> None:
     log.setLevel(getattr(logging, level.upper(), logging.INFO))
     fmt = logging.Formatter(
-        "%(asctime)s %(levelname)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        '%(asctime)s %(levelname)s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
     )
     sh = logging.StreamHandler(sys.stdout)
     sh.setFormatter(fmt)
@@ -88,7 +88,7 @@ def setup_logging(level: str, log_file: str | None) -> None:
     log.addHandler(sh)
     log.propagate = False
     if log_file:
-        fh = logging.FileHandler(log_file, encoding="utf-8")
+        fh = logging.FileHandler(log_file, encoding='utf-8')
         fh.setFormatter(fmt)
         log.addHandler(fh)
 
@@ -107,16 +107,16 @@ def load_env_file(path: str, key: str) -> dict:
 def _real(*vals: Any) -> Any:
     for v in vals:
         if v and not str(v).strip().lower().startswith(
-            ("your-", "<", "changeme", "replace"),
+            ('your-', '<', 'changeme', 'replace'),
         ):
             return v
     return None
 
 
 def resolve_queue(sqs: Any, queue: str) -> str:
-    if queue.startswith("http://", "https://"):
+    if queue.startswith('http://', 'https://'):
         return queue
-    return sqs.get_queue_url(QueueName=queue)["QueueUrl"]
+    return sqs.get_queue_url(QueueName=queue)['QueueUrl']
 
 
 def queue_depth(sqs: Any, queue_url: str) -> dict[str, int]:
@@ -124,43 +124,43 @@ def queue_depth(sqs: Any, queue_url: str) -> dict[str, int]:
         QueueUrl=queue_url,
         AttributeNames=list(QUEUE_ATTRS),
     )
-    raw = attrs.get("Attributes", {})
+    raw = attrs.get('Attributes', {})
     return {
-        "visible": int(raw.get("ApproximateNumberOfMessages", 0)),
-        "in_flight": int(raw.get("ApproximateNumberOfMessagesNotVisible", 0)),
-        "delayed": int(raw.get("ApproximateNumberOfMessagesDelayed", 0)),
+        'visible': int(raw.get('ApproximateNumberOfMessages', 0)),
+        'in_flight': int(raw.get('ApproximateNumberOfMessagesNotVisible', 0)),
+        'delayed': int(raw.get('ApproximateNumberOfMessagesDelayed', 0)),
     }
 
 
 def format_depth(d: dict[str, int]) -> str:
-    total = d["visible"] + d["in_flight"] + d["delayed"]
-    return f"visible={d['visible']:,} in_flight={d['in_flight']:,} delayed={d['delayed']:,} approx_total={total:,}"
+    total = d['visible'] + d['in_flight'] + d['delayed']
+    return f'visible={d["visible"]:,} in_flight={d["in_flight"]:,} delayed={d["delayed"]:,} approx_total={total:,}'
 
 
 def to_envelope(msg: dict, queue_arn: str, region: str) -> dict:
     return {
-        "Records": [
+        'Records': [
             {
-                "messageId": msg.get("MessageId"),
-                "receiptHandle": msg.get("ReceiptHandle", "consume-no-delete"),
-                "body": msg.get("Body", ""),
-                "attributes": msg.get("Attributes", {}),
-                "messageAttributes": msg.get("MessageAttributes", {}),
-                "md5OfBody": msg.get("MD5OfBody", ""),
-                "eventSource": "aws:sqs",
-                "eventSourceARN": queue_arn,
-                "awsRegion": region,
+                'messageId': msg.get('MessageId'),
+                'receiptHandle': msg.get('ReceiptHandle', 'consume-no-delete'),
+                'body': msg.get('Body', ''),
+                'attributes': msg.get('Attributes', {}),
+                'messageAttributes': msg.get('MessageAttributes', {}),
+                'md5OfBody': msg.get('MD5OfBody', ''),
+                'eventSource': 'aws:sqs',
+                'eventSourceARN': queue_arn,
+                'awsRegion': region,
             },
         ],
     }
 
 
 def message_label(body: dict) -> str:
-    table = body.get("table", "?")
-    op = body.get("operation", "?")
-    row = body.get("row") or {}
-    note_id = row.get("id") or row.get("note_id") or "?"
-    return f"{table}:{op}:id={note_id}"
+    table = body.get('table', '?')
+    op = body.get('operation', '?')
+    row = body.get('row') or {}
+    note_id = row.get('id') or row.get('note_id') or '?'
+    return f'{table}:{op}:id={note_id}'
 
 
 def log_progress(
@@ -171,12 +171,12 @@ def log_progress(
     start: float,
     depth: dict[str, int],
     *,
-    prefix: str = "Progress",
+    prefix: str = 'Progress',
 ) -> None:
     elapsed = time.time() - start
     rate = processed / elapsed if elapsed > 0 else 0.0
     log.info(
-        "%s: processed=%s ok=%s failed=%s skipped_dup=%s elapsed=%.1fs rate=%.1f/s queue[%s]",
+        '%s: processed=%s ok=%s failed=%s skipped_dup=%s elapsed=%.1fs rate=%.1f/s queue[%s]',
         prefix,
         processed,
         ok,
@@ -195,70 +195,70 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument(
-        "--queue",
+        '--queue',
         default=None,
-        help="Queue name or URL (else env / env.json)",
+        help='Queue name or URL (else env / env.json)',
     )
     ap.add_argument(
-        "--env-file",
-        default="env.json",
-        help="JSON config (default: env.json)",
+        '--env-file',
+        default='env.json',
+        help='JSON config (default: env.json)',
     )
     ap.add_argument(
-        "--env-key",
+        '--env-key',
         default=handler_cfg.default_env_key,
-        help=f"Section in env file (default: {handler_cfg.default_env_key})",
+        help=f'Section in env file (default: {handler_cfg.default_env_key})',
     )
-    ap.add_argument("--region", default=None)
-    ap.add_argument("--profile", default=None)
+    ap.add_argument('--region', default=None)
+    ap.add_argument('--profile', default=None)
     ap.add_argument(
-        "--max-messages",
+        '--max-messages',
         type=int,
         default=10,
-        help="Stop after N messages processed",
+        help='Stop after N messages processed',
     )
-    ap.add_argument("--max-seconds", type=int, default=300, help="Wall-clock limit")
+    ap.add_argument('--max-seconds', type=int, default=300, help='Wall-clock limit')
     ap.add_argument(
-        "--visibility",
+        '--visibility',
         type=int,
         default=120,
-        help="VisibilityTimeout on receive (seconds)",
+        help='VisibilityTimeout on receive (seconds)',
     )
     ap.add_argument(
-        "--wait",
+        '--wait',
         type=int,
         default=20,
-        help="Long-poll WaitTimeSeconds (max 20)",
+        help='Long-poll WaitTimeSeconds (max 20)',
     )
     ap.add_argument(
-        "--idle-polls",
+        '--idle-polls',
         type=int,
         default=3,
-        help="Stop after N empty polls",
+        help='Stop after N empty polls',
     )
     ap.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Receive only; do not invoke handler",
+        '--dry-run',
+        action='store_true',
+        help='Receive only; do not invoke handler',
     )
     ap.add_argument(
-        "--save-dir",
+        '--save-dir',
         default=None,
-        help="Write each envelope as <messageId>.json",
+        help='Write each envelope as <messageId>.json',
     )
     ap.add_argument(
-        "--progress-every",
+        '--progress-every',
         type=int,
         default=100,
-        help="Log progress summary every N processed messages (0 to disable)",
+        help='Log progress summary every N processed messages (0 to disable)',
     )
     ap.add_argument(
-        "--log-level",
-        default="INFO",
-        choices=("DEBUG", "INFO", "WARNING", "ERROR"),
-        help="Logging level (DEBUG logs every message)",
+        '--log-level',
+        default='INFO',
+        choices=('DEBUG', 'INFO', 'WARNING', 'ERROR'),
+        help='Logging level (DEBUG logs every message)',
     )
-    ap.add_argument("--log-file", default=None, help="Also append logs to this file")
+    ap.add_argument('--log-file', default=None, help='Also append logs to this file')
     args = ap.parse_args(argv)
 
     setup_logging(args.log_level, args.log_file)
@@ -266,75 +266,75 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
     fe = load_env_file(str(ROOT / args.env_file), args.env_key)
     queue = _real(
         args.queue,
-        os.environ.get("SQS_QUEUE_URL"),
-        os.environ.get("SQS_QUEUE_NAME"),
-        fe.get("SQS_QUEUE_URL"),
-        fe.get("SQS_QUEUE_NAME"),
+        os.environ.get('SQS_QUEUE_URL'),
+        os.environ.get('SQS_QUEUE_NAME'),
+        fe.get('SQS_QUEUE_URL'),
+        fe.get('SQS_QUEUE_NAME'),
     )
-    region = _real(args.region, os.environ.get("AWS_REGION"), fe.get("AWS_REGION"))
-    profile = _real(args.profile, os.environ.get("AWS_PROFILE"), fe.get("AWS_PROFILE"))
+    region = _real(args.region, os.environ.get('AWS_REGION'), fe.get('AWS_REGION'))
+    profile = _real(args.profile, os.environ.get('AWS_PROFILE'), fe.get('AWS_PROFILE'))
 
     if not queue:
         log.error(
-            "No queue configured. Use --queue or set SQS_QUEUE_NAME in env / env.json.",
+            'No queue configured. Use --queue or set SQS_QUEUE_NAME in env / env.json.',
         )
         return 2
 
     if not args.dry_run:
         handler_cfg.apply_handler_env(fe)
-        sys.path.insert(0, str(ROOT / "lambda"))
+        sys.path.insert(0, str(ROOT / 'lambda'))
         handler = importlib.import_module(handler_cfg.handler_module)
         importlib.reload(handler)
     else:
         handler = None
 
     session = boto3.Session(profile_name=profile, region_name=region)
-    region = session.region_name or region or "us-west-2"
-    sqs = session.client("sqs")
+    region = session.region_name or region or 'us-west-2'
+    sqs = session.client('sqs')
 
     try:
         queue_url = resolve_queue(sqs, queue)
     except Exception as exc:
-        log.exception("Could not resolve queue %r: %s", queue, exc)
+        log.exception('Could not resolve queue %r: %s', queue, exc)
         return 2
 
     attrs = sqs.get_queue_attributes(
         QueueUrl=queue_url,
-        AttributeNames=["QueueArn", "FifoQueue"],
+        AttributeNames=['QueueArn', 'FifoQueue'],
     )
-    queue_arn = attrs["Attributes"].get(
-        "QueueArn",
-        f"arn:aws:sqs:{region}:000000000000:{queue}",
+    queue_arn = attrs['Attributes'].get(
+        'QueueArn',
+        f'arn:aws:sqs:{region}:000000000000:{queue}',
     )
-    is_fifo = attrs["Attributes"].get("FifoQueue") == "true"
+    is_fifo = attrs['Attributes'].get('FifoQueue') == 'true'
 
     save_dir = Path(args.save_dir) if args.save_dir else None
     if save_dir:
         save_dir.mkdir(parents=True, exist_ok=True)
 
-    schema = fe.get("RDS_SCHEMA_BOA_APP_RDS_DATA", handler_cfg.default_schema)
+    schema = fe.get('RDS_SCHEMA_BOA_APP_RDS_DATA', handler_cfg.default_schema)
     start_depth = queue_depth(sqs, queue_url)
 
-    log.info("Queue:     %s", queue_url)
-    log.info("Region:    %s  fifo=%s", region, is_fifo)
+    log.info('Queue:     %s', queue_url)
+    log.info('Region:    %s  fifo=%s', region, is_fifo)
     log.info(
-        "Handler:   %s",
-        "DRY-RUN (no invoke)" if args.dry_run else handler_cfg.handler_label,
+        'Handler:   %s',
+        'DRY-RUN (no invoke)' if args.dry_run else handler_cfg.handler_label,
     )
-    log.info("DB schema: %s", schema)
-    log.info("Mode:      NON-DESTRUCTIVE — messages are NOT deleted from queue")
+    log.info('DB schema: %s', schema)
+    log.info('Mode:      NON-DESTRUCTIVE — messages are NOT deleted from queue')
     log.info(
-        "Limits:    max_messages=%s max_seconds=%s visibility=%ss idle_polls=%s wait=%ss",
+        'Limits:    max_messages=%s max_seconds=%s visibility=%ss idle_polls=%s wait=%ss',
         args.max_messages,
         args.max_seconds,
         args.visibility,
         args.idle_polls,
         args.wait,
     )
-    log.info("Queue depth at start: %s", format_depth(start_depth))
+    log.info('Queue depth at start: %s', format_depth(start_depth))
 
     class Ctx:
-        aws_request_id = f"consume-{uuid.uuid4().hex[:12]}"
+        aws_request_id = f'consume-{uuid.uuid4().hex[:12]}'
 
     processed = 0
     ok = 0
@@ -343,23 +343,23 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
     seen_ids: set[str] = set()
     start = time.time()
     empty_streak = 0
-    stop_reason = "unknown"
+    stop_reason = 'unknown'
     results: list[tuple[str, bool, str]] = []
     last_progress_at = 0
 
     while processed < args.max_messages:
         if time.time() - start > args.max_seconds:
-            stop_reason = f"max-seconds reached ({args.max_seconds}s)"
-            log.warning("Stopping: %s", stop_reason)
+            stop_reason = f'max-seconds reached ({args.max_seconds}s)'
+            log.warning('Stopping: %s', stop_reason)
             break
         if empty_streak >= args.idle_polls:
             depth = queue_depth(sqs, queue_url)
             stop_reason = (
-                f"{empty_streak} consecutive empty polls "
-                f"(idle_polls={args.idle_polls}); queue may be empty or all messages in-flight "
-                f"(visibility={args.visibility}s). Depth: {format_depth(depth)}"
+                f'{empty_streak} consecutive empty polls '
+                f'(idle_polls={args.idle_polls}); queue may be empty or all messages in-flight '
+                f'(visibility={args.visibility}s). Depth: {format_depth(depth)}'
             )
-            log.warning("Stopping: %s", stop_reason)
+            log.warning('Stopping: %s', stop_reason)
             break
 
         resp = sqs.receive_message(
@@ -367,15 +367,15 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
             MaxNumberOfMessages=min(10, args.max_messages - processed),
             WaitTimeSeconds=min(args.wait, 20),
             VisibilityTimeout=args.visibility,
-            AttributeNames=["All"],
-            MessageAttributeNames=["All"],
+            AttributeNames=['All'],
+            MessageAttributeNames=['All'],
         )
-        msgs = resp.get("Messages", [])
+        msgs = resp.get('Messages', [])
         if not msgs:
             empty_streak += 1
             depth = queue_depth(sqs, queue_url)
             log.info(
-                "Empty poll %s/%s (wait=%ss). Queue depth: %s",
+                'Empty poll %s/%s (wait=%ss). Queue depth: %s',
                 empty_streak,
                 args.idle_polls,
                 min(args.wait, 20),
@@ -383,24 +383,24 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
             )
             continue
         empty_streak = 0
-        log.debug("Received batch of %s message(s)", len(msgs))
+        log.debug('Received batch of %s message(s)', len(msgs))
 
         for msg in msgs:
             if processed >= args.max_messages:
                 break
-            mid = msg.get("MessageId") or f"unknown-{processed}"
+            mid = msg.get('MessageId') or f'unknown-{processed}'
             if mid in seen_ids:
                 skipped_dup += 1
-                log.debug("Skipping duplicate messageId in this run: %s", mid)
+                log.debug('Skipping duplicate messageId in this run: %s', mid)
                 continue
             seen_ids.add(mid)
 
             try:
-                body = json.loads(msg.get("Body", "{}"))
+                body = json.loads(msg.get('Body', '{}'))
             except json.JSONDecodeError as exc:
                 failed += 1
-                results.append((mid, False, f"invalid JSON: {exc}"))
-                log.exception("[FAIL] %s invalid JSON: %s", mid, exc)
+                results.append((mid, False, f'invalid JSON: {exc}'))
+                log.exception('[FAIL] %s invalid JSON: %s', mid, exc)
                 processed += 1
                 continue
 
@@ -408,33 +408,33 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
             envelope = to_envelope(msg, queue_arn, region)
 
             if save_dir:
-                out_path = save_dir / f"{mid}.json"
-                out_path.write_text(json.dumps(envelope, indent=2, default=str) + "\n")
+                out_path = save_dir / f'{mid}.json'
+                out_path.write_text(json.dumps(envelope, indent=2, default=str) + '\n')
 
             if args.dry_run:
                 ok += 1
-                results.append((mid, True, f"dry-run {label}"))
-                log.debug("[dry-run] %s  %s", mid, label)
+                results.append((mid, True, f'dry-run {label}'))
+                log.debug('[dry-run] %s  %s', mid, label)
                 processed += 1
             else:
-                Ctx.aws_request_id = f"consume-{uuid.uuid4().hex[:12]}"
+                Ctx.aws_request_id = f'consume-{uuid.uuid4().hex[:12]}'
                 try:
                     resp_handler = handler.lambda_handler(envelope, Ctx())
-                    failures = resp_handler.get("batchItemFailures") or []
+                    failures = resp_handler.get('batchItemFailures') or []
                     if failures:
                         failed += 1
                         results.append(
-                            (mid, False, f"{label} batchItemFailures={failures}"),
+                            (mid, False, f'{label} batchItemFailures={failures}'),
                         )
-                        log.error("[FAIL] %s  %s  %s", mid, label, failures)
+                        log.error('[FAIL] %s  %s  %s', mid, label, failures)
                     else:
                         ok += 1
                         results.append((mid, True, label))
-                        log.debug("[OK]   %s  %s", mid, label)
+                        log.debug('[OK]   %s  %s', mid, label)
                 except Exception as exc:
                     failed += 1
-                    results.append((mid, False, f"{label} error={exc}"))
-                    log.exception("[FAIL] %s  %s  %s", mid, label, exc)
+                    results.append((mid, False, f'{label} error={exc}'))
+                    log.exception('[FAIL] %s  %s  %s', mid, label, exc)
                 processed += 1
 
             if args.progress_every and processed - last_progress_at >= args.progress_every:
@@ -448,33 +448,33 @@ def run_consume(handler_cfg: HandlerConfig, argv: list[str] | None = None) -> in
                 )
                 last_progress_at = processed
     else:
-        stop_reason = f"max-messages reached ({args.max_messages})"
+        stop_reason = f'max-messages reached ({args.max_messages})'
 
     end_depth = queue_depth(sqs, queue_url)
     elapsed = time.time() - start
     rate = processed / elapsed if elapsed > 0 else 0.0
 
-    log.info("=== Summary ===")
-    log.info("  stop_reason:  %s", stop_reason)
-    log.info("  processed:    %s", processed)
-    log.info("  ok:           %s", ok)
-    log.info("  failed:       %s", failed)
-    log.info("  skipped_dup:  %s", skipped_dup)
-    log.info("  unique_ids:   %s", len(seen_ids))
-    log.info("  elapsed:      %.1fs (%.1f msg/s)", elapsed, rate)
-    log.info("  queue start:  %s", format_depth(start_depth))
-    log.info("  queue end:    %s", format_depth(end_depth))
+    log.info('=== Summary ===')
+    log.info('  stop_reason:  %s', stop_reason)
+    log.info('  processed:    %s', processed)
+    log.info('  ok:           %s', ok)
+    log.info('  failed:       %s', failed)
+    log.info('  skipped_dup:  %s', skipped_dup)
+    log.info('  unique_ids:   %s', len(seen_ids))
+    log.info('  elapsed:      %.1fs (%.1f msg/s)', elapsed, rate)
+    log.info('  queue start:  %s', format_depth(start_depth))
+    log.info('  queue end:    %s', format_depth(end_depth))
     if save_dir:
-        log.info("  saved:        %s/", save_dir)
+        log.info('  saved:        %s/', save_dir)
     log.info(
-        "  note: messages return to queue after visibility timeout (%ss)",
+        '  note: messages return to queue after visibility timeout (%ss)',
         args.visibility,
     )
 
     if failed:
-        log.error("Failures (%s):", failed)
+        log.error('Failures (%s):', failed)
         for mid, success, detail in results:
             if not success:
-                log.error("  %s: %s", mid, detail)
+                log.error('  %s: %s', mid, detail)
         return 1
     return 0

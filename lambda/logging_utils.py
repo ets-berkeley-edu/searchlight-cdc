@@ -42,12 +42,12 @@ Set LOG_LEVEL env (DEBUG, INFO, WARNING, ERROR) to control verbosity.
 """
 
 
-_LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
-logger = logging.getLogger("cdc")
+_LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
+logger = logging.getLogger('cdc')
 logger.setLevel(getattr(logging, _LOG_LEVEL, logging.INFO))
 if not logger.handlers:
     _handler = logging.StreamHandler()
-    _handler.setFormatter(logging.Formatter("%(message)s"))
+    _handler.setFormatter(logging.Formatter('%(message)s'))
     logger.addHandler(_handler)
     logger.propagate = False
 
@@ -55,9 +55,9 @@ if not logger.handlers:
 def log(service_name: str, level: int, msg: str, **kwargs: Any) -> None:
     """Emit a structured JSON log line with optional context fields."""
     payload: dict[str, Any] = {
-        "level": logging.getLevelName(level),
-        "service": service_name,
-        "message": msg,
+        'level': logging.getLevelName(level),
+        'service': service_name,
+        'message': msg,
     }
     payload.update(kwargs)
     logger.log(level, json.dumps(payload, default=str))

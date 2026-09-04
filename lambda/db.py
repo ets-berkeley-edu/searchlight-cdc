@@ -41,12 +41,12 @@ Local/SAM:  LOCAL_DEV=true reads DB_HOST, DB_USER, etc. from environment.
 """
 
 
-DB_SECRET_NAME = os.environ.get("DB_SECRET_NAME", "")
-DB_NAME = os.environ.get("DB_NAME", "")
+DB_SECRET_NAME = os.environ.get('DB_SECRET_NAME', '')
+DB_NAME = os.environ.get('DB_NAME', '')
 
 _secrets_client = None
 _db_credentials: dict[str, Any] | None = None
-SERVICE_NAME = "advising-notes-search-cdc-db"
+SERVICE_NAME = 'advising-notes-search-cdc-db'
 
 
 def _local_credentials() -> dict[str, Any]:
@@ -57,33 +57,33 @@ def _local_credentials() -> dict[str, Any]:
         return get_local_db_credentials()
     except ImportError:
         return {
-            "host": os.environ.get("DB_HOST", "localhost"),
-            "port": int(os.environ.get("DB_PORT", "5432")),
-            "username": os.environ.get("DB_USER", "test_user"),
-            "password": os.environ.get("DB_PASSWORD", "test_password"),
+            'host': os.environ.get('DB_HOST', 'localhost'),
+            'port': int(os.environ.get('DB_PORT', '5432')),
+            'username': os.environ.get('DB_USER', 'test_user'),
+            'password': os.environ.get('DB_PASSWORD', 'test_password'),
         }
 
 
 def get_db_credentials() -> dict[str, Any]:
     """Retrieve and cache database credentials."""
     global _db_credentials
-    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
-        log(SERVICE_NAME, logging.DEBUG, "Using local DB credentials from environment")
+    if os.environ.get('LOCAL_DEV', 'false').lower() == 'true':
+        log(SERVICE_NAME, logging.DEBUG, 'Using local DB credentials from environment')
         return _local_credentials()
     if _db_credentials is None:
         log(
             SERVICE_NAME,
             logging.INFO,
-            "Loading DB credentials from Secrets Manager",
+            'Loading DB credentials from Secrets Manager',
             secret_name=DB_SECRET_NAME,
         )
         try:
             secret_response = get_secrets_client().get_secret_value(SecretId=DB_SECRET_NAME)
-            _db_credentials = json.loads(secret_response["SecretString"])
+            _db_credentials = json.loads(secret_response['SecretString'])
         except Exception as e:
             log_exception(
                 SERVICE_NAME,
-                "Error getting DB credentials from Secrets Manager",
+                'Error getting DB credentials from Secrets Manager',
                 e,
                 secret_name=DB_SECRET_NAME,
             )
@@ -93,19 +93,19 @@ def get_db_credentials() -> dict[str, Any]:
 def get_db_connection() -> psycopg2.extensions.connection:
     """Create a new PostgreSQL connection (one per Lambda invocation)."""
     creds = get_db_credentials()
-    dbname = os.environ.get("DB_NAME", DB_NAME)
+    dbname = os.environ.get('DB_NAME', DB_NAME)
     log(
         SERVICE_NAME,
         logging.DEBUG,
-        "Connecting to database",
-        host=creds.get("host"),
+        'Connecting to database',
+        host=creds.get('host'),
         dbname=dbname,
     )
     return psycopg2.connect(
-        host=creds["host"],
-        port=creds.get("port", 5432),
-        user=creds["username"],
-        password=creds["password"],
+        host=creds['host'],
+        port=creds.get('port', 5432),
+        user=creds['username'],
+        password=creds['password'],
         dbname=dbname,
         connect_timeout=5,
     )
@@ -114,5 +114,5 @@ def get_db_connection() -> psycopg2.extensions.connection:
 def get_secrets_client():
     global _secrets_client
     if _secrets_client is None:
-        _secrets_client = boto3.client("secretsmanager")
+        _secrets_client = boto3.client('secretsmanager')
     return _secrets_client
