@@ -5,9 +5,8 @@ Deploy lambda function code and dependencies to the AWS Cloud.
 TODO: Which method to use for deploying to dev, qa, prod?
 - Terraform (ops-managed)
 - SAM CLI
-- AWS CLI
 
-We wil probably use terraform for initial deployment to create the IAM role (this requires ops-level permissions).
+Leveraging [Terraform + SAM integration](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/gs-terraform-support.html) would require terraform files in the local dev environment. We prefer to keep terraform files in a separate private repo.
 
 ## First-time setup
 
@@ -65,6 +64,7 @@ aws lambda publish-layer-version \
 https://docs.aws.amazon.com/lambda/latest/dg/adding-layers.html
 
 ```bash
+# Obtain the LayerVersion ARN of each layer
 aws lambda list-layers
 ```
 ```bash
@@ -73,7 +73,9 @@ aws lambda update-function-configuration \
     --layers LayerVersionArn1 LayerVersionArn2 ...
 ```
 
-## Deploy the lambda function
+## Deploy the lambda
+
+Uses CodeDeploy for safe deployment, incrementally shifting incoming message triggers from the old version to the new one.
 
 ### Deploy lambda and layers using AWS SAM CLI
 
@@ -86,7 +88,7 @@ make deploy-dev
 
 ### Deploy lambda function code only
 
-Updates code without requiring a CloudFormation deployment.
+Updates code without necessarily requiring a CloudFormation deployment.
 
 ```bash
 # requires iam:PassRole permission
@@ -95,10 +97,23 @@ make sync-dev
 
 ### Deploy lambda using AWS CLI
 
+Deploy a local .zip file
 ```bash
 aws lambda update-function-code \
     --function-name lambda_handler \
     --zip-file CDCHandler.zip
+```
+
+Deploy from S3
+```bash
+S3_BUCKET=$(aws cloudformation describe-stack-resources \
+        --stack-name searchlight-cdc-dev \
+        --query "StackResources[?ResourceType=='AWS::S3::Bucket'].PhysicalResourceId" \
+        --output text)
+aws lambda update-function-code \
+    --function-name lambda_handler \
+    --s3-bucket $(S3_BUCKET) \
+    --s3-key searchlight-cdc-dev/<key>
 ```
 
 ### Test deployed changes

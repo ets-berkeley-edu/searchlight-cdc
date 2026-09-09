@@ -55,12 +55,17 @@ Resources:
 
   CDCHandler:
     Type: AWS::Serverless::Function
+    DeletionPolicy: "RetainExceptOnCreate"
+    UpdateReplacePolicy: "Delete"
     Properties:
-      FunctionName: advising-notes-cdc-handler-direct
       CodeUri: lambda/
-      Handler: handler.lambda_handler
       Description: Direct-table production CDC handler
+      FunctionName: lambda_handler
+      Handler: handler.lambda_handler
       Role: !Ref LambdaRoleArn
+      AutoPublishAlias: live
+      DeploymentPreference:
+          Type: Linear10PercentEvery1Minute
       Environment:
         Variables:
           LOCAL_DEV: "true"

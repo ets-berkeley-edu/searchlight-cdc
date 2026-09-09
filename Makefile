@@ -1,7 +1,7 @@
 -include .env.dev
 export
 
-.PHONY: help build-Psycopg2Layer build-Boto3Layer build test-unit apply-sql sam-test sam-test-all consume-sqs consume-sqs-dry-run replay check deploy-dev test-remote publish
+.PHONY: help build-Psycopg2Layer build-Boto3Layer build test-unit apply-sql sam-test sam-test-all consume-sqs consume-sqs-dry-run replay check package sync-dev deploy-dev test-remote
 
 SAM_EVENTS := notes-create notes-update notes-delete note_topics-create note_topics-update note_topics-delete
 SAM := LOCAL_DEV=true sam local invoke CDCHandler --env-vars env.json
@@ -71,11 +71,14 @@ consume-sqs-dry-run:
 check:
 	ruff check lambda/ test/ scripts/ && ruff format --check lambda/ test/ scripts/
 
+package: build
+	sam package --config-env dev --resolve-s3 --s3-prefix searchlight-cdc-dev
+
 sync-dev:
-	sam sync --config-env dev --resource AWS::Serverless::Function --stack-name searchlight-cdc-dev $(PARAMS)
+	sam sync --code --config-env dev --resource-id CDCHandler $(PARAMS)
 
 deploy-dev: build
-	sam deploy --config-env dev $(PARAMS)
+	sam deploy --force-upload --stack-name searchlight-cdc-dev --config-env dev $(PARAMS)
 
 test-remote:
 	sam remote invoke CDCHandler --stack-name searchlight-cdc-dev --event-file events/examples/notes-create.json
