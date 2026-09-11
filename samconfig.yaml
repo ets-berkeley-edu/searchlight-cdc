@@ -2,12 +2,12 @@ version: 0.1
 dev:
   global:
     parameters:
-      stack_name: searchlight-cdc-dev
       region: us-west-2
+      stack_name: searchlight-cdc-dev
   deploy:
     parameters:
-      resolve_s3: true
-      s3_prefix: searchlight-cdc-dev
-      confirm_changeset: true
       capabilities: CAPABILITY_IAM
+      confirm_changeset: true
       image_repositories: []
+      s3_bucket: la-lambda-deploys
+      s3_prefix: searchlight-cdc-dev

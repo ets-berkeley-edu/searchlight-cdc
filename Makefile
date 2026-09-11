@@ -75,7 +75,7 @@ sync-dev:
 	sam sync --config-env dev --resource AWS::Serverless::Function --stack-name searchlight-cdc-dev $(PARAMS)
 
 deploy-dev: build
-	sam deploy --config-env dev $(PARAMS)
+	sam deploy --force-upload --config-env dev $(PARAMS)
 
 test-remote:
 	sam remote invoke CDCHandler --stack-name searchlight-cdc-dev --event-file events/examples/notes-create.json
