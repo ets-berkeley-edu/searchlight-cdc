@@ -41,6 +41,7 @@ make sam-test                  # invoke handler with a sample CDC event
 | Local development | [docs/local-development.md](docs/local-development.md) |
 | Migrations | [docs/migrations.md](docs/migrations.md) |
 | Operations | [docs/operations.md](docs/operations.md) |
+| Deployment | [docs/deployment.md](docs/deployment.md) |
 
 ## Project layout
 
