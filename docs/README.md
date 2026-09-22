@@ -1,6 +1,6 @@
-# Direct production pack — documentation
+# Direct Table Change Data Capture
 
-Self-contained docs for the **direct-table CDC** Lambda in this folder. BOA remains the source of truth; this system maintains a derived search index in PostgreSQL schema `boa_app_rds_data`.
+Self-contained docs for the **Direct Table CDC** Lambda in this folder. BOA remains the source of truth; this system maintains a derived search index in PostgreSQL schema `boa_app_rds_data`.
 
 ## Guides
 

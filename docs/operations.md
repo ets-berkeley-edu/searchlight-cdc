@@ -1,6 +1,6 @@
 # Operations
 
-Day-to-day monitoring, incident response, and recovery for the direct-table CDC handler deployed from this pack.
+Day-to-day monitoring, incident response, and recovery for the Direct Table CDC handler deployed from this pack.
 
 ## Log group
 

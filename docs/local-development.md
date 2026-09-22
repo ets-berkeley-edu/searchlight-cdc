@@ -1,6 +1,6 @@
 # Local development
 
-Setup, testing, and local validation for the direct-table CDC handler in this pack.
+Setup, testing, and local validation for the Direct Table CDC handler in this pack.
 
 ## Prerequisites
 

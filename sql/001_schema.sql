@@ -1,4 +1,4 @@
--- Direct-table experiment schema (single live tables, no delta/nightly split)
+-- Direct Table CDC schema
 -- Placeholders: {rds_schema_boa_app_rds_data}, {rds_app_boa_user}
 
 CREATE SCHEMA IF NOT EXISTS {rds_schema_boa_app_rds_data};
@@ -12,4 +12,4 @@ ALTER DEFAULT PRIVILEGES
   GRANT SELECT ON TABLES TO {rds_app_boa_user};
 
 COMMENT ON SCHEMA {rds_schema_boa_app_rds_data} IS
-  'Direct-table CDC experiment: advising notes, topics, FTS, audit log';
+  'Direct Table CDC: search index for BOA-created advising notes and topics';

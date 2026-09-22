@@ -1,4 +1,4 @@
--- Indexes for direct-table experiment
+-- Direct Table CDC indexes
 
 CREATE INDEX advising_notes_sid_idx
   ON {rds_schema_boa_app_rds_data}.advising_notes (sid);

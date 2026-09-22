@@ -15,7 +15,7 @@ ifneq ($(PSYCOPG2_LAYER_ARN), "")
 endif
 
 help:
-	@echo "Direct-table CDC production pack"
+	@echo "Direct Table CDC production pack"
 	@echo "  make apply-sql           Apply sql/*.sql"
 	@echo "  make test-unit           pytest test/unit/"
 	@echo "  make sam-test            SAM invoke notes-create"

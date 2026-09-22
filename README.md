@@ -3,7 +3,7 @@
 [![Build Status](https://app.travis-ci.com/sandeep-jay/searchlight-cdc.svg?branch=main)](https://app.travis-ci.com/sandeep-jay/searchlight-cdc/branches)
 
 
-**Direct-table Change Data Capture (CDC) Lambda** for advising notes — consumes change events from an existing **SQS FIFO** queue and writes to **PostgreSQL** (`boa_app_rds_data`).
+**Direct Table Change Data Capture (CDC) Lambda** for advising notes — consumes change events from an existing **SQS FIFO** queue and writes to **PostgreSQL** (`boa_app_rds_data`).
 
 ```
 SQS FIFO (CDC events) → handler.lambda_handler → PostgreSQL

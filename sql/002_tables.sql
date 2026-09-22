@@ -1,4 +1,4 @@
--- Direct single-table model for CDC experiment
+-- Direct Table CDC tables
 
 DROP TABLE IF EXISTS {rds_schema_boa_app_rds_data}.advising_notes_cdc_log CASCADE;
 DROP TABLE IF EXISTS {rds_schema_boa_app_rds_data}.advising_notes_search_index CASCADE;
@@ -22,7 +22,7 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes (
 );
 
 COMMENT ON TABLE {rds_schema_boa_app_rds_data}.advising_notes IS
-  'Live advising notes table (direct CDC experiment; bulk-refreshed from export)';
+  'Live advising notes table (Direct Table CDC; bulk-refreshed from export)';
 
 CREATE TABLE {rds_schema_boa_app_rds_data}.advising_note_topics (
     id VARCHAR NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_note_topics (
 );
 
 COMMENT ON TABLE {rds_schema_boa_app_rds_data}.advising_note_topics IS
-  'Live note topics (direct CDC experiment)';
+  'Live note topics (Direct Table CDC)';
 
 CREATE TABLE {rds_schema_boa_app_rds_data}.advising_note_topics_pending (
     boa_id VARCHAR NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_note_topics_pending (
 );
 
 COMMENT ON TABLE {rds_schema_boa_app_rds_data}.advising_note_topics_pending IS
-  'Orphan topics parked until parent note arrives (direct CDC experiment)';
+  'Orphan topics parked until parent note arrives (Direct Table CDC)';
 
 CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes_search_index (
     id VARCHAR PRIMARY KEY,
@@ -52,7 +52,7 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes_search_index (
 );
 
 COMMENT ON TABLE {rds_schema_boa_app_rds_data}.advising_notes_search_index IS
-  'FTS index for direct-table CDC experiment';
+  'FTS index for Direct Table CDC';
 
 CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes_cdc_log (
     log_id BIGSERIAL PRIMARY KEY,
@@ -72,14 +72,14 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes_cdc_log (
 );
 
 COMMENT ON TABLE {rds_schema_boa_app_rds_data}.advising_notes_cdc_log IS
-  'Audit log for direct-table CDC events (replay and integrity checks)';
+  'Audit log for Direct Table CDC events (replay and integrity checks)';
 
 -- Optional passthrough views for app compatibility during shadow testing
-CREATE OR REPLACE VIEW {rds_schema_boa_app_rds_data}.advising_notes_vw AS
-  SELECT * FROM {rds_schema_boa_app_rds_data}.advising_notes;
+-- CREATE OR REPLACE VIEW {rds_schema_boa_app_rds_data}.advising_notes_vw AS
+--   SELECT * FROM {rds_schema_boa_app_rds_data}.advising_notes;
 
-CREATE OR REPLACE VIEW {rds_schema_boa_app_rds_data}.advising_note_topics_vw AS
-  SELECT * FROM {rds_schema_boa_app_rds_data}.advising_note_topics;
+-- CREATE OR REPLACE VIEW {rds_schema_boa_app_rds_data}.advising_note_topics_vw AS
+--   SELECT * FROM {rds_schema_boa_app_rds_data}.advising_note_topics;
 
-CREATE OR REPLACE VIEW {rds_schema_boa_app_rds_data}.advising_notes_search_index_vw AS
-  SELECT id, fts_index FROM {rds_schema_boa_app_rds_data}.advising_notes_search_index;
+-- CREATE OR REPLACE VIEW {rds_schema_boa_app_rds_data}.advising_notes_search_index_vw AS
+--   SELECT id, fts_index FROM {rds_schema_boa_app_rds_data}.advising_notes_search_index;
