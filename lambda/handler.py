@@ -37,7 +37,7 @@ from batch import run_sqs_batch
 from logging_utils import log
 from mapping import effective_operation, is_delete_operation, map_note_row_to_payload
 
-"""Direct-table CDC Lambda (handler.lambda_handler).
+"""Direct Table CDC Lambda (handler.lambda_handler).
 
 SQS FIFO → lambda_handler → batch.run_sqs_batch → process_message
 

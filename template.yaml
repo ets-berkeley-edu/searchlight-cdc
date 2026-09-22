@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Advising Notes Search \u2014 direct-table CDC handler (local SAM)
+Description: Advising Notes Search \u2014 Direct Table CDC handler (local SAM)
 
 Globals:
   Function:
@@ -59,7 +59,7 @@ Resources:
       FunctionName: advising-notes-cdc-handler-direct
       CodeUri: lambda/
       Handler: handler.lambda_handler
-      Description: Direct-table production CDC handler
+      Description: Direct Table production CDC handler
       Role: !Ref LambdaRoleArn
       Environment:
         Variables:
