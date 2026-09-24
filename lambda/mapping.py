@@ -95,9 +95,12 @@ def map_note_row_to_payload(row: dict[str, Any]) -> dict[str, Any]:
         'author_name': row.get('author_name'),
         'advisor_first_name': first_name,
         'advisor_last_name': last_name,
+        'author_dept_codes': row.get('author_dept_codes'),
         'subject': row.get('subject'),
         'note_body': row.get('body'),
         'is_private': row.get('is_private', False),
+        'contact_type': row.get('contact_type'),
+        'set_date': row.get('set_date'),
         'created_at': row.get('created_at'),
         'updated_at': row.get('updated_at'),
     }
