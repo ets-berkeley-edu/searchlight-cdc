@@ -217,13 +217,15 @@ def process_note(
         sql = f"""
             INSERT INTO {t.notes} (
                 id, sid, boa_id, advisor_uid, author_name,
-                advisor_first_name, advisor_last_name,
-                subject, note_body, is_private, created_at, updated_at
+                advisor_first_name, advisor_last_name, author_dept_codes,
+                subject, note_body, is_private, contact_type,
+                set_date, created_at, updated_at
             )
             VALUES (
                 %(id)s, %(sid)s, %(boa_id)s, %(advisor_uid)s, %(author_name)s,
-                %(advisor_first_name)s, %(advisor_last_name)s,
-                %(subject)s, %(note_body)s, %(is_private)s, %(created_at)s, %(updated_at)s
+                %(advisor_first_name)s, %(advisor_last_name)s, %(author_dept_codes)s
+                %(subject)s, %(note_body)s, %(is_private)s, %(contact_type)s,
+                %(set_date)s, %(created_at)s, %(updated_at)s
             )
             ON CONFLICT (id)
             DO UPDATE SET
@@ -233,9 +235,12 @@ def process_note(
                 author_name = EXCLUDED.author_name,
                 advisor_first_name = EXCLUDED.advisor_first_name,
                 advisor_last_name = EXCLUDED.advisor_last_name,
+                author_dept_codes = EXCLUDED.author_dept_codes,
                 subject = EXCLUDED.subject,
                 note_body = EXCLUDED.note_body,
                 is_private = EXCLUDED.is_private,
+                contact_type = EXCLUDED.contact_type,
+                set_date = EXCLUDED.set_date,
                 created_at = EXCLUDED.created_at,
                 updated_at = EXCLUDED.updated_at
         """
