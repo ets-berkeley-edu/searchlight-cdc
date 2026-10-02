@@ -19,6 +19,8 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes (
     note_body TEXT,
     is_private BOOLEAN,
     contact_type VARCHAR,
+    parent_note_id VARCHAR,
+    peer_advising_department_id VARCHAR,
     set_date DATE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL

@@ -100,6 +100,8 @@ def map_note_row_to_payload(row: dict[str, Any]) -> dict[str, Any]:
         'note_body': row.get('body'),
         'is_private': row.get('is_private', False),
         'contact_type': row.get('contact_type'),
+        'parent_note_id': row.get('parent_note_id'),
+        'peer_advising_department_id': row.get('peer_advising_department_id'),
         'set_date': row.get('set_date'),
         'created_at': row.get('created_at'),
         'updated_at': row.get('updated_at'),
