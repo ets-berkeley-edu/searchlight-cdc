@@ -219,12 +219,14 @@ def process_note(
                 id, sid, boa_id, advisor_uid, author_name,
                 advisor_first_name, advisor_last_name, author_dept_codes,
                 subject, note_body, is_private, contact_type,
+                parent_note_id, peer_advising_department_id,
                 set_date, created_at, updated_at
             )
             VALUES (
                 %(id)s, %(sid)s, %(boa_id)s, %(advisor_uid)s, %(author_name)s,
-                %(advisor_first_name)s, %(advisor_last_name)s, %(author_dept_codes)s
+                %(advisor_first_name)s, %(advisor_last_name)s, %(author_dept_codes)s,
                 %(subject)s, %(note_body)s, %(is_private)s, %(contact_type)s,
+                %(parent_note_id)s, %(peer_advising_department_id)s,
                 %(set_date)s, %(created_at)s, %(updated_at)s
             )
             ON CONFLICT (id)
@@ -240,6 +242,8 @@ def process_note(
                 note_body = EXCLUDED.note_body,
                 is_private = EXCLUDED.is_private,
                 contact_type = EXCLUDED.contact_type,
+                parent_note_id = EXCLUDED.parent_note_id,
+                peer_advising_department_id = EXCLUDED.peer_advising_department_id,
                 set_date = EXCLUDED.set_date,
                 created_at = EXCLUDED.created_at,
                 updated_at = EXCLUDED.updated_at
