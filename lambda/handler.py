@@ -61,6 +61,7 @@ class DirectTables:
     schema: str
     notes: str
     topics: str
+    authors: str
     fts: str
     pending_topics: str
     cdc_log: str
@@ -74,6 +75,7 @@ def load_tables() -> DirectTables:
         schema=schema,
         notes=os.environ.get('NOTES_TABLE', f'{schema}.advising_notes'),
         topics=os.environ.get('TOPICS_TABLE', f'{schema}.advising_note_topics'),
+        authors=os.environ.get('AUTHORS_TABLE', f'{schema}.advising_note_authors_index'),
         fts=os.environ.get('FTS_TABLE', f'{schema}.advising_notes_search_index'),
         pending_topics=os.environ.get(
             'PENDING_TOPICS_TABLE',
@@ -255,6 +257,14 @@ def process_note(
             note_id,
             payload.get('sid'),
             payload.get('boa_id'),
+            event_id,
+        )
+        fts_status = update_authors_index(
+            cur,
+            t,
+            payload.get('author_name'),
+            payload.get('advisor_uid'),
+            note_id,
             event_id,
         )
         fts_status = update_fts_index(cur, t, note_id, event_id)
@@ -459,6 +469,40 @@ def reconcile_pending_topics(
             count=moved,
         )
     return moved
+
+
+def update_authors_index(
+    cur: psycopg2.extensions.cursor,
+    t: Any,
+    advisor_name: str,
+    advisor_uid: str,
+    composite_id: str,
+    event_id: str,
+) -> str:
+    """Upsert the author name of a newly created note. Returns applied or warning."""
+    sql = f"""
+        INSERT INTO {t.authors} (advisor_name, advisor_uid)
+        VALUES (%(advisor_name)s, %(advisor_uid)s)
+        ON CONFLICT (advisor_name) DO UPDATE SET advisor_uid = EXCLUDED.advisor_uid
+    """
+    cur.execute(sql, (advisor_name, advisor_uid))
+    if cur.rowcount == 0:
+        log(
+            SERVICE_NAME,
+            logging.WARNING,
+            'Note author index update resulted in no rows affected',
+            event_id=event_id,
+            composite_id=composite_id,
+        )
+        return 'warning'
+    log(
+        SERVICE_NAME,
+        logging.INFO,
+        'Note author index updated',
+        event_id=event_id,
+        composite_id=composite_id,
+    )
+    return 'applied'
 
 
 def update_fts_index(

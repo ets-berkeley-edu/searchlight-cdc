@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS {rds_schema_boa_app_rds_data}.advising_notes CASCADE;
 CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes (
     id VARCHAR PRIMARY KEY,
     sid VARCHAR NOT NULL,
-    boa_id VARCHAR NOT NULL,
+    boa_id INTEGER NOT NULL,
     advisor_uid VARCHAR,
     author_name VARCHAR,
     advisor_first_name VARCHAR,
@@ -19,8 +19,8 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes (
     note_body TEXT,
     is_private BOOLEAN,
     contact_type VARCHAR,
-    parent_note_id VARCHAR,
-    peer_advising_department_id VARCHAR,
+    parent_note_id INTEGER,
+    peer_advising_department_id INTEGER,
     set_date DATE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
@@ -50,6 +50,14 @@ CREATE TABLE {rds_schema_boa_app_rds_data}.advising_note_topics_pending (
 
 COMMENT ON TABLE {rds_schema_boa_app_rds_data}.advising_note_topics_pending IS
   'Orphan topics parked until parent note arrives (Direct Table CDC)';
+
+CREATE TABLE {rds_schema_boa_app_rds_data}.advising_note_authors_index (
+    advisor_name VARCHAR PRIMARY KEY,
+    advisor_uid VARCHAR
+);
+
+COMMENT ON TABLE {rds_schema_boa_app_rds_data}.advising_note_authors_index IS
+  'Note author name search index for Direct Table CDC';
 
 CREATE TABLE {rds_schema_boa_app_rds_data}.advising_notes_search_index (
     id VARCHAR PRIMARY KEY,

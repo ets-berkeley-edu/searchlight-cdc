@@ -20,6 +20,7 @@ Placeholders `{rds_schema_boa_app_rds_data}` and `{rds_app_boa_user}` are substi
 
 ```sql
 DROP TABLE IF EXISTS ... advising_notes_cdc_log CASCADE;
+DROP TABLE IF EXISTS ... advising_note_authors_index CASCADE;
 DROP TABLE IF EXISTS ... advising_notes_search_index CASCADE;
 DROP TABLE IF EXISTS ... advising_note_topics_pending CASCADE;
 DROP TABLE IF EXISTS ... advising_note_topics CASCADE;
@@ -87,4 +88,4 @@ WHERE schemaname = 'boa_app_rds_data'
   AND tablename = 'advising_notes_search_index';
 ```
 
-Expected tables: `advising_notes`, `advising_note_topics`, `advising_notes_search_index`, `advising_note_topics_pending`, `advising_notes_cdc_log`, plus `*_vw` views.
+Expected tables: `advising_note_authors_index`, `advising_notes`, `advising_note_topics`, `advising_notes_search_index`, `advising_note_topics_pending`, `advising_notes_cdc_log`.

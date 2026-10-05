@@ -21,6 +21,12 @@ CREATE INDEX advising_note_topics_boa_id_idx
 CREATE INDEX advising_note_topics_topic_idx
   ON {rds_schema_boa_app_rds_data}.advising_note_topics (topic);
 
+CREATE INDEX advising_note_authors_advisor_name_idx
+  ON {rds_schema_boa_app_rds_data}.advising_note_authors_index (advisor_name text_ops);
+
+CREATE INDEX advising_note_authors_name_uid_idx
+  ON {rds_schema_boa_app_rds_data}.advising_note_authors_index (advisor_name text_ops, advisor_uid text_ops);
+
 CREATE INDEX advising_notes_search_index_fts_index_idx
   ON {rds_schema_boa_app_rds_data}.advising_notes_search_index
   USING gin (fts_index);
