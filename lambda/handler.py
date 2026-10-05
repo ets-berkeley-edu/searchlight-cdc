@@ -259,7 +259,7 @@ def process_note(
             payload.get('boa_id'),
             event_id,
         )
-        fts_status = update_authors_index(
+        author_status = update_authors_index(
             cur,
             t,
             payload.get('author_name'),
@@ -278,7 +278,7 @@ def process_note(
             prepared_record=payload,
             composite_id=note_id,
             boa_id=payload.get('boa_id'),
-            apply_status='partial_warning' if fts_status == 'warning' else 'applied',
+            apply_status='partial_warning' if (fts_status == 'warning' or author_status == 'warning') else 'applied',
         )
         log(
             SERVICE_NAME,
@@ -480,6 +480,15 @@ def update_authors_index(
     event_id: str,
 ) -> str:
     """Upsert the author name of a newly created note. Returns applied or warning."""
+    if not advisor_name or not len(advisor_name):
+        log(
+            SERVICE_NAME,
+            logging.INFO,
+            'Note author index update skipped; author name missing.',
+            event_id=event_id,
+            composite_id=composite_id,
+        )
+        return 'skipped'
     sql = f"""
         INSERT INTO {t.authors} (advisor_name, advisor_uid)
         VALUES (%(advisor_name)s, %(advisor_uid)s)
