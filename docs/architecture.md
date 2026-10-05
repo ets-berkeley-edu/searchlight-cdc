@@ -19,6 +19,7 @@ flowchart LR
   Lambda --> Notes[advising_notes]
   Lambda --> Topics[advising_note_topics]
   Lambda --> FTS[advising_notes_search_index]
+  Lambda --> FTS[advising_note_authors_index]
   Lambda --> Pending[advising_note_topics_pending]
   Lambda --> Log[advising_notes_cdc_log]
 ```
@@ -54,6 +55,7 @@ SQL: `sql/001_schema.sql` through `003_indexes.sql`.
 |-------|---------|
 | `advising_notes` | Live notes (seeded from nightly export) |
 | `advising_note_topics` | Live topics |
+| `advising_note_authors_index` | Live index for search by note author name |
 | `advising_notes_search_index` | FTS (`tsvector` + GIN) |
 | `advising_note_topics_pending` | Orphan topics before parent note arrives |
 | `advising_notes_cdc_log` | Audit: payload, prepared record, status |

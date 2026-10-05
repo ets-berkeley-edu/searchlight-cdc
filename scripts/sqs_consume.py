@@ -58,6 +58,7 @@ def apply_handler_env(fe: dict) -> None:
         'HANDLER_VERSION',
         'NOTES_TABLE',
         'TOPICS_TABLE',
+        'AUTHORS_TABLE',
         'FTS_TABLE',
         'CDC_LOG_TABLE',
         'PENDING_TOPICS_TABLE',
