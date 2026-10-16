@@ -294,9 +294,17 @@ def process_note(
             )
 
         composite_id = f'boa-{sid}-{note_id}'
-        cur.execute(f'DELETE FROM {t.notes} WHERE id = %s', (composite_id,))
+        cur.execute(
+            f"""WITH deleted_ids AS (
+                DELETE FROM {t.notes} WHERE id = %s OR parent_note_id = %s
+                RETURNING id
+            )
+            DELETE FROM {t.note_fts} WHERE id IN (
+                SELECT id FROM deleted_ids
+            )""",
+            (composite_id, note_id),
+        )
         cur.execute(f'DELETE FROM {t.topics} WHERE id = %s', (composite_id,))
-        cur.execute(f'DELETE FROM {t.note_fts} WHERE id = %s', (composite_id,))
         cur.execute(f'DELETE FROM {t.pending_topics} WHERE boa_id = %s', (note_id,))
         insert_cdc_log(
             cur,
